@@ -121,9 +121,9 @@ architecture Behavioral of IntTmr is
 
  -- variables for internal clock generator
 
- signal initClear : std_logic;          --internal copy of init used for inital
-                                        --clearing of all registers
- signal intRun : std_logic;
+ signal initClear : std_logic := '0'; --internal copy of init used for inital
+                                      --clearing of all registers
+ signal intRun : std_logic := '0';
 
  -- cycle length register
 
@@ -147,8 +147,8 @@ architecture Behavioral of IntTmr is
 
  -- cycle clock counter
 
- signal intCtrLoad : std_logic;
- signal cycleClkClr : std_logic;
+ signal intCtrLoad : std_logic := '0';
+ signal cycleClkClr : std_logic := '0';
  signal cycleClkCtr : unsigned (cycleClkBits-1 downto 0);
 
  -- subtractor

@@ -35,7 +35,8 @@ entity Shift is
         init : in std_logic;
         din : in std_logic;
         shift : in std_logic;
-        data : inout unsigned (n-1 downto 0));
+        data : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0')
+        );
 end Shift;
 
 architecture Behavioral of Shift is

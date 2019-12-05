@@ -46,7 +46,8 @@ entity CmpTmr is
   encClk : in std_logic;                --encoder clock
   cycleSel: in std_logic;               --cycle length register select
   encCycleDone: out std_logic;          --encoder cycle done
-  cycleClocks: inout unsigned (cycleClkBits-1 downto 0); --cycle counter
+  cycleClocks: inout unsigned (cycleClkBits-1 downto 0)
+   := (cycleClkBits-1 downto 0 => '0'); --cycle counter
   op: in unsigned (opBits-1 downto 0);
   copy: in std_logic;
   dout: out std_logic
@@ -155,19 +156,17 @@ architecture Behavioral of CmpTmr is
 
  -- control signals from state machine
 
- signal initClear : std_logic;          --initialization clear
- signal initLoad : std_logic;           --initial load
- signal encPulseUpd : std_logic;        --encoder pulse update
- signal cycCalcUpd : std_logic;         --cycle calculation update
- signal cycChkUpd : std_logic;          --cycle check update
- --signal cycDoneUpd : std_logic;         --cycle done update
- signal cycEndUpd : std_logic;          --cycle end update
+ signal initClear : std_logic := '0';   --initialization clear
+ signal initLoad : std_logic := '0';    --initial load
+ signal encPulseUpd : std_logic := '0'; --encoder pulse update
+ signal cycCalcUpd : std_logic := '0';  --cycle calculation update
+ signal cycChkUpd : std_logic := '0';   --cycle check update
+ signal cycEndUpd : std_logic := '0';   --cycle end update
 
  -- cycle length register
 
  signal cycleLenShift : std_logic;      --shift into cycle len register
- signal encCycle : unsigned (cycleLenBits-1 downto 0) :=
-  (cycleLenBits-1 downto 0 => '0'); --cycle length value
+ signal encCycle : unsigned (cycleLenBits-1 downto 0); --cycle length value
 
  -- cycle length counter
 
@@ -269,7 +268,7 @@ begin
 
  clockMult: multiplier                  --multiply encoder count encoder clocks
   port map(
-   aclr => initClear,
+   aclr => initialReset,
    clken => cycCalcUpd,
    clock => clk,
    dataa => std_logic_vector(encCount),

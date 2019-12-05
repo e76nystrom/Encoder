@@ -35,13 +35,13 @@ entity ShiftOut is
         load : in std_logic;
         shift : in std_logic;
         data : in unsigned (n-1 downto 0);
-        dout : out std_logic
+        dout : out std_logic := '0'
         );
 end ShiftOut;
 
 architecture Behavioral of ShiftOut is
 
- signal shiftReg : unsigned(n-1 downto 0);
+ signal shiftReg : unsigned(n-1 downto 0) := (n-1 downto 0 => '0');
  
 begin
 

@@ -35,7 +35,7 @@ entity UpCounterOne is
   clk : in std_logic;
   init : in std_logic;
   ena : in std_logic;
-  counter : inout  unsigned (n-1 downto 0));
+  counter : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end UpCounterOne;
 
 architecture Behavioral of UpCounterOne is

@@ -44,75 +44,116 @@ ARCHITECTURE behavior OF EncoderTest IS
  
  component Encoder
   port(
-   sysClk : in  std_logic;
-   sw1 : in  std_logic;
-   sw0 : in  std_logic;
-   sw2 : in  std_logic;
-   sw3 : in  std_logic;
-   led : out  std_logic_vector(7 downto 0);
+   sysClk : in std_logic;
+   
+   led : out std_logic_vector(7 downto 0);
 
-   j1_p04 : out  std_logic;
-   j1_p06 : out  std_logic;
-   j1_p08 : out  std_logic;
-   j1_p10 : out  std_logic;
+   dbg0 : out std_logic;
+   dbg1 : out std_logic;
+   dbg2 : out std_logic;
+   dbg3 : out std_logic;
 
-   j1_p12 : in  std_logic;
-   j1_p14 : out  std_logic;
-   j1_p16 : in  std_logic;
-   j1_p18 : in  std_logic;
+   dclk : in std_logic;
+   dout : out std_logic;
+   din  : in std_logic;
+   dsel : in std_logic;
 
-   jc1 : out  std_logic;
-   jc2 : in  std_logic;
-   jc3 : in  std_logic;
-   jc4 : in  std_logic;
-
+   encClk  : in std_logic;
+   intClk  : out std_logic;
+   start  : in std_logic;
+   ready  : out std_logic;
+   
    initialReset : in std_logic
+
+   -- sysClk : in  std_logic;
+   --  sw1 : in  std_logic;
+   --  sw0 : in  std_logic;
+   --  sw2 : in  std_logic;
+   --  sw3 : in  std_logic;
+   --  led : out  std_logic_vector(7 downto 0);
+
+   --  j1_p04 : out  std_logic;
+   --  j1_p06 : out  std_logic;
+   --  j1_p08 : out  std_logic;
+   --  j1_p10 : out  std_logic;
+
+   --  j1_p12 : in  std_logic;
+   --  j1_p14 : out  std_logic;
+   --  j1_p16 : in  std_logic;
+   --  j1_p18 : in  std_logic;
+
+   --  jc1 : out  std_logic;
+   --  jc2 : in  std_logic;
+   --  jc3 : in  std_logic;
+   --  jc4 : in  std_logic;
+
+   --  initialReset : in std_logic
    );
  end component;
 
  --Inputs
+
+ signal dclk : std_logic := '0';
+ signal din : std_logic := '0';
+ signal dsel : std_logic := '1';
+
+ signal encClk : std_logic := '0';
+ signal start : std_logic := '0';
+
  -- signal sysClk : std_logic := '0';
- signal sw1 : std_logic := '0';
- signal sw0 : std_logic := '0';
- signal sw2 : std_logic := '0';
- signal sw3 : std_logic := '0';
 
- signal j1_p12 : std_logic := '0';
- signal j1_p16 : std_logic := '0';
- signal j1_p18 : std_logic := '0';
+ -- signal sw1 : std_logic := '0';
+ -- signal sw0 : std_logic := '0';
+ -- signal sw2 : std_logic := '0';
+ -- signal sw3 : std_logic := '0';
 
- signal jc2 : std_logic := '0';
- signal jc3 : std_logic := '0';
- signal jc4 : std_logic := '0';
+ -- signal j1_p12 : std_logic := '0';
+ -- signal j1_p16 : std_logic := '0';
+ -- signal j1_p18 : std_logic := '0';
+
+ -- signal jc2 : std_logic := '0';
+ -- signal jc3 : std_logic := '0';
+ -- signal jc4 : std_logic := '0';
 
  signal initialReset : std_logic := '1';
 
  --Outputs
+
  signal led : std_logic_vector(7 downto 0);
 
- signal j1_p04 : std_logic;
- signal j1_p06 : std_logic;
- signal j1_p08 : std_logic;
+ signal dbg0 : std_logic;
+ signal dbg1 : std_logic;
+ signal dbg2 : std_logic;
+ signal dbg3 : std_logic;
 
- signal j1_p10 : std_logic;
+ signal dout : std_logic;
 
- signal j1_p14 : std_logic;
+ signal intClk : std_logic;
+ signal ready : std_logic;
+ 
+ -- signal j1_p04 : std_logic;
+ -- signal j1_p06 : std_logic;
+ -- signal j1_p08 : std_logic;
 
- signal jc1 : std_logic;
+ -- signal j1_p10 : std_logic;
+
+ -- signal j1_p14 : std_logic;
+
+ -- signal jc1 : std_logic;
 
  -- Clock period definitions
  -- constant sysClk_period : time := 10 ns;
  
- alias dclk : std_logic is j1_p12;
- alias dout : std_logic is j1_p14;
- alias din : std_logic is j1_p16;
- alias dsel : std_logic is j1_p18;
+ -- alias dclk : std_logic is j1_p12;
+ -- alias dout : std_logic is j1_p14;
+ -- alias din : std_logic is j1_p16;
+ -- alias dsel : std_logic is j1_p18;
 
- alias intClk : std_logic is jc1;       --internal clock
- alias encClk : std_logic is jc2;       --encoder clock
+ -- alias intClk : std_logic is jc1;       --internal clock
+ -- alias encClk : std_logic is jc2;       --encoder clock
 
- alias ctlInit : std_logic is jc3;      --initialize
- alias ctlEna : std_logic is jc4;       --enable
+ -- alias ctlInit : std_logic is jc3;      --initialize
+ -- alias ctlEna : std_logic is jc4;       --enable
 
  -- dclk <= jb1;
  -- jb2  <= dout;
@@ -153,26 +194,33 @@ begin
  uut: Encoder
   port map (
    sysClk => sysClk,
-   sw1 => sw1,
-   sw0 => sw0,
-   sw2 => sw2,
-   sw3 => sw3,
+
    led => led,
 
-   j1_p04 => j1_p04,
-   j1_p06 => j1_p06,
-   j1_p08 => j1_p08,
-   j1_p10 => j1_p10,
+   dbg0 => dbg0,
+   dbg1 => dbg1,
+   dbg2 => dbg2,
+   dbg3 => dbg3,
 
-   j1_p12 => dclk,
-   j1_p14 => dout,
-   j1_p16 => din,
-   j1_p18 => dsel,
+   -- j1_p04 => j1_p04,
+   -- j1_p06 => j1_p06,
+   -- j1_p08 => j1_p08,
+   -- j1_p10 => j1_p10,
 
-   jc1 => jc1,
-   jc2 => jc2,
-   jc3 => jc3,
-   jc4 => jc4,
+   dclk => dclk,
+   dout => dout,
+   din => din,
+   dsel => dsel,
+
+   encClk => encClk,
+   intClk => intClk,
+   start => start,
+   ready => ready,
+   
+   -- jc1 => jc1,
+   -- jc2 => jc2,
+   -- jc3 => jc3,
+   -- jc4 => jc4,
 
    initialReset => initialReset
    );
@@ -203,14 +251,13 @@ begin
  end loadValue;
 
  begin		
-  ctlInit <= '1';                       --initialize
   dsel <= '1';
   -- hold reset state for 100 ns.
 
   wait for 100 ns;	
 
   delay(8);
-  ctlInit <= '0';
+  -- ctlInit <= '0';
   initialReset <= '0';
 
   wait for sysClk_period*5;
@@ -223,12 +270,11 @@ begin
   loadParm(XLDINTCYCLE);
   loadValue(intCycle, cycleLenBits);
 
-  ctlInit <= '1';                       --initialize
-  delay(8);
-  ctlInit <= '0';
-  delay(8);
-
-  ctlEna <= '1';                        --enable
+  start <= '1';
+  while (ready = '0') loop
+   delay(1);
+  end loop;
+  start <= '0';
 
   for j in 0 to 160-1 loop               --number of encoder pulses
    delay(18);                     	--18+2 clocks between encoder pulses

@@ -37,7 +37,7 @@ entity UpCounterLoad is
   load : in std_logic;
   inc : in std_logic;
   preset : in unsigned (n-1 downto 0);
-  counter : inout unsigned (n-1 downto 0));
+  counter : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end UpCounterLoad;
 
 architecture Behavioral of UpCounterLoad is

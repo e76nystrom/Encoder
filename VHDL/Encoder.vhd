@@ -33,42 +33,22 @@ entity Encoder is
  port(
   sysClk : in std_logic;
   
-  -- sw1 : in std_logic;
-  -- sw0 : in std_logic;
-  -- sw2 : in std_logic;
-  -- sw3 : in std_logic;
-  
   led : out std_logic_vector(7 downto 0);
-
-  -- j1_p04 : out std_logic;
-  -- j1_p06 : out std_logic;
-  -- j1_p08 : out std_logic;
-  -- j1_p10 : out std_logic;
 
   dbg0 : out std_logic;
   dbg1 : out std_logic;
   dbg2 : out std_logic;
   dbg3 : out std_logic;
 
-  -- j1_p12 : in std_logic;
-  -- j1_p14 : out std_logic;
-  -- j1_p16 : in std_logic;
-  -- j1_p18 : in std_logic;
-
   dclk : in std_logic;
   dout : out std_logic;
   din  : in std_logic;
   dsel : in std_logic;
 
-  -- jc1 : out std_logic;
-  -- jc2 : in std_logic;
-  -- jc3 : in std_logic;
-  -- jc4 : in std_logic;
-
   encClk  : in std_logic;
-  intClk  : out std_logic;
+  intClk  : out std_logic := '0';
   start  : in std_logic;
-  ready  : out std_logic;
+  ready  : out std_logic := '0';
   
   initialReset : in std_logic
   );
@@ -160,33 +140,16 @@ architecture Behavioral of Encoder is
    );
  end component;
 
- -- alias ja1 : std_logic is j1_p04;
- -- alias ja2 : std_logic is j1_p06;
- -- alias ja3 : std_logic is j1_p08;
- -- alias ja4 : std_logic is j1_p10;
-
- -- alias jb1 : std_logic is j1_p12;
- -- alias jb2 : std_logic is j1_p14;
- -- alias jb3 : std_logic is j1_p16;
- -- alias jb4 : std_logic is j1_p18;
-
-constant opb : positive := 8;
-constant opBits : positive := 8;
+ constant opb : positive := 8;
+ constant opBits : positive := 8;
 
 -- skip register zero
 
-constant XNOOP        : unsigned(opb-1 downto 0) := x"00"; -- register 0
+ constant XNOOP        : unsigned(opb-1 downto 0) := x"00"; -- register 0
 
-constant XLDENCCYCLE : unsigned (opBits-1 downto 0) := x"01";
-constant XLDINTCYCLE : unsigned (opBits-1 downto 0) := x"02";
-constant XLDCTL : unsigned (opBits-1 downto 0) := x"03";
-
- -- spi interface signals
-
- -- signal dclk : std_logic;               --data clock
- -- signal din : std_logic;                --data in mosi
- -- signal dsel : std_logic;               --select line
- -- signal dout : std_logic;               --data out miso
+ constant XLDENCCYCLE : unsigned (opBits-1 downto 0) := x"01";
+ constant XLDINTCYCLE : unsigned (opBits-1 downto 0) := x"02";
+ constant XLDCTL : unsigned (opBits-1 downto 0) := x"03";
 
  -- system clock
 
@@ -198,8 +161,8 @@ constant XLDCTL : unsigned (opBits-1 downto 0) := x"03";
  constant div_range : integer := 26;
  signal div : unsigned (div_range downto 0);
 
- signal ctlInit : std_logic;
- signal ctlEna  : std_logic;
+ signal ctlInit : std_logic := '0';
+ signal ctlEna  : std_logic := '0';
  signal ctlDelay : unsigned (4-1 downto 0);
 
  -- spi interface
@@ -226,23 +189,13 @@ constant XLDCTL : unsigned (opBits-1 downto 0) := x"03";
 
  -- intTmr
 
- -- signal intClk : std_logic;
  signal intCycleSel : std_logic;
-
- -- start internal timer
-
- -- signal startInt : std_logic;
- -- signal clrStartInt : std_logic := '0';
- -- signal setStartInt : std_logic := '0';
 
  -- constant rCtlSize : positive := 2;
  -- signal rCtlReg : unsigned (rCtlSize-1 downto 0) := "00";
  -- alias ctlInit : std_logic is rCtlReg(0);
  -- alias ctlEna  : std_logic is rCtlReg(1);
 
- -- signal ctlInit : std_logic;
- -- signal ctlEna : std_logic;
- 
  type ctlFsm is (idle, setReady, init, enable);
  signal ctlState : ctlFsm := idle;
 
@@ -252,36 +205,15 @@ begin
  led(6) <= div(div_range);
  led(5) <= div(div_range-1);
  led(4) <= div(div_range-2);
- -- led(3) <= not sw3;
- -- led(2) <= not sw2;
- -- led(1) <= not sw1;
- -- led(0) <= not sw0;
  led(3) <= div(div_range);
  led(2) <= div(div_range);
  led(1) <= div(div_range);
  led(0) <= div(div_range);
 
- -- ja1 <= div(div_range-3);
- -- ja2 <= div(div_range-4);
  dbg0 <= div(div_range-3);
  dbg1 <= div(div_range-4);
- -- ja3 <= div(div_range-5);
- -- ja4 <= div(div_range-6);
-
- -- ja3 <= header;
- -- ja4 <= load;
  dbg2 <= header;
  dbg3 <= load;
-
- -- dclk <= jb1;
- -- jb2  <= dout;
- -- din  <= jb3;
- -- dsel <= jb4;
-
- -- jc1 <= intClk;
- 
- -- ctlInit <= jc3;
- -- ctlEna <= jc4;
 
  -- system clock
 
@@ -309,8 +241,6 @@ begin
  --   clk => clk1,
  --   ena => div(20),
  --   clkena => encClk);
-
- -- encClk <= jc2;
 
  -- spi interface
 
@@ -367,25 +297,12 @@ begin
  --   load => load,
  --   data => rCtlReg);
 
- -- start_process: process(clk1)
- -- begin
- --  if (rising_edge(clk1)) then           --if clock active
- --   if (ctlInit = '1') then
- --    startInt <= '1';
- --   elsif (setStartInt = '1') then
- --    startInt <= '1';
- --   elsif (clrStartInt = '1') then
- --    startInt <= '0';
- --   end if;
- --  end if;
- -- end process;
-
  ctl_process: process(clk1)
  begin
   if (rising_edge(clk1)) then            --if clock active
    case ctlState is
     when idle =>
-     if (start = '1') then              --
+     if (start = '1') then
       ctlEna <= '0';
       ctlInit <= '1';
       ctlDelay <= x"f";
@@ -415,7 +332,7 @@ begin
 
  cmpCycleSel <= '1' when (op = XLDENCCYCLE) else '0';
  
-  cmp_tmr : CmpTmr
+ cmp_tmr : CmpTmr
   generic map (cycleLenBits => cycleLenBits,
                encClkBits => encClkBits,
                cycleClkbits => cycleClkBits)

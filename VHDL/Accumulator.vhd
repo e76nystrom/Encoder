@@ -35,7 +35,7 @@ entity Accumulator is
         ena : in std_logic;
         clr : in std_logic;
         a : in  unsigned (n-1 downto 0);
-        sum : inout unsigned (n-1 downto 0));
+        sum : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end Accumulator;
 
 architecture Behavioral of Accumulator is

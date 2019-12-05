@@ -36,11 +36,11 @@ entity SPI is
   dclk : in std_logic;                   --spi clk
   dsel : in std_logic;                   --spi select
   din : in std_logic;                    --spi data in
-  op : out unsigned(opBits-1 downto 0);  --op code
+  op : out unsigned(opBits-1 downto 0) := x"00";  --op code
   copy : out std_logic;                  --copy data to be shifted out
   shift : out std_logic;                 --shift data
   load : out std_logic;                  --load data shifted in
-  header : inout std_logic
+  header : inout std_logic := '0'
   --info : out std_logic_vector(2 downto 0) --state info
   );
 end SPI;

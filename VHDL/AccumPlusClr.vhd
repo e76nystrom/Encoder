@@ -35,7 +35,7 @@ entity AccumPlusClr is
         clr : in std_logic;
         ena : in std_logic;
         a : in unsigned (n-1 downto 0);
-        sum : inout unsigned (n-1 downto 0));
+        sum : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end AccumPlusClr;
 
 architecture Behavioral of AccumPlusClr is

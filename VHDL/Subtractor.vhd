@@ -37,7 +37,7 @@ entity Subtractor is
   ena : in std_logic;
   a : in unsigned (n-1 downto 0);
   b : in unsigned (n-1 downto 0);
-  diff : inout unsigned (n-1 downto 0));
+  diff : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end Subtractor;
 
 architecture Behavioral of Subtractor is

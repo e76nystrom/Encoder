@@ -35,7 +35,7 @@ entity UpCounter is
   clk : in std_logic;
   clr : in std_logic;
   ena : in std_logic;
-  counter : inout  unsigned (n-1 downto 0));
+  counter : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end UpCounter;
 
 architecture Behavioral of UpCounter is

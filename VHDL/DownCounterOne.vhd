@@ -35,8 +35,8 @@ entity DownCounterOne is
         ena : in std_logic;
         load : in std_logic;
         preset : in unsigned (n-1 downto 0);
-        counter : inout  unsigned (n-1 downto 0);
-        one : out std_logic);
+        counter : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '0');
+        one : out std_logic := '0');
 end DownCounterOne;
 
 architecture Behavioral of DownCounterOne is
@@ -58,4 +58,3 @@ begin
  end process;
 
 end Behavioral;
-
