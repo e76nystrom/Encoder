@@ -39,7 +39,7 @@ entity IntTmr is
   dshift : in std_logic;                --spi shift in
   initialReset : in std_logic;          --initial reset
   init : in std_logic;                  --init signal
-  intClk : out std_logic;               --output clock
+  intClk : out std_logic := '0';        --output clock
   cycleSel : in std_logic;              --cycle length register select
   encCycleDone : in std_logic;          --encoder cycle done
   cycleClocks: in unsigned (cycleClkBits-1 downto 0) --cycle counter

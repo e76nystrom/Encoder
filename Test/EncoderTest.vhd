@@ -64,30 +64,6 @@ ARCHITECTURE behavior OF EncoderTest IS
    ready  : out std_logic;
    
    initialReset : in std_logic
-
-   -- sysClk : in  std_logic;
-   --  sw1 : in  std_logic;
-   --  sw0 : in  std_logic;
-   --  sw2 : in  std_logic;
-   --  sw3 : in  std_logic;
-   --  led : out  std_logic_vector(7 downto 0);
-
-   --  j1_p04 : out  std_logic;
-   --  j1_p06 : out  std_logic;
-   --  j1_p08 : out  std_logic;
-   --  j1_p10 : out  std_logic;
-
-   --  j1_p12 : in  std_logic;
-   --  j1_p14 : out  std_logic;
-   --  j1_p16 : in  std_logic;
-   --  j1_p18 : in  std_logic;
-
-   --  jc1 : out  std_logic;
-   --  jc2 : in  std_logic;
-   --  jc3 : in  std_logic;
-   --  jc4 : in  std_logic;
-
-   --  initialReset : in std_logic
    );
  end component;
 
@@ -99,21 +75,6 @@ ARCHITECTURE behavior OF EncoderTest IS
 
  signal encClk : std_logic := '0';
  signal start : std_logic := '0';
-
- -- signal sysClk : std_logic := '0';
-
- -- signal sw1 : std_logic := '0';
- -- signal sw0 : std_logic := '0';
- -- signal sw2 : std_logic := '0';
- -- signal sw3 : std_logic := '0';
-
- -- signal j1_p12 : std_logic := '0';
- -- signal j1_p16 : std_logic := '0';
- -- signal j1_p18 : std_logic := '0';
-
- -- signal jc2 : std_logic := '0';
- -- signal jc3 : std_logic := '0';
- -- signal jc4 : std_logic := '0';
 
  signal initialReset : std_logic := '1';
 
@@ -131,54 +92,12 @@ ARCHITECTURE behavior OF EncoderTest IS
  signal intClk : std_logic;
  signal ready : std_logic;
  
- -- signal j1_p04 : std_logic;
- -- signal j1_p06 : std_logic;
- -- signal j1_p08 : std_logic;
-
- -- signal j1_p10 : std_logic;
-
- -- signal j1_p14 : std_logic;
-
- -- signal jc1 : std_logic;
-
- -- Clock period definitions
- -- constant sysClk_period : time := 10 ns;
- 
- -- alias dclk : std_logic is j1_p12;
- -- alias dout : std_logic is j1_p14;
- -- alias din : std_logic is j1_p16;
- -- alias dsel : std_logic is j1_p18;
-
- -- alias intClk : std_logic is jc1;       --internal clock
- -- alias encClk : std_logic is jc2;       --encoder clock
-
- -- alias ctlInit : std_logic is jc3;      --initialize
- -- alias ctlEna : std_logic is jc4;       --enable
-
- -- dclk <= jb1;
- -- jb2  <= dout;
- -- din  <= jb3;
- -- dsel <= jb4;
- 
- -- procedure delay(constant n : in integer) is
- -- begin
- --  for i in 0 to n-1 loop
- --   wait until sysClk = '1';
- --   wait until sysClk = '0';
- --  end loop;
- -- end procedure delay;
-
  constant cycleLenBits : positive := 16;
  constant encClkBits : positive := 24;
  constant cycleClkBits : positive := 32;
 
  signal encCycle : natural := 5;
  signal intCycle : natural := 4;
-
- -- variable op : integer;
-
- -- constant XLDENCCYCLE : unsigned(opb-1 downto 0) := x"01";
- -- constant XLDINTCYCLE : unsigned(opb-1 downto 0) := x"02";
 
  signal parmIdx : unsigned(opb-1 downto 0) :=  (opb-1 downto 0 => '0');
  signal parmVal : unsigned(cycleLenBits-1 downto 0) :=
@@ -202,11 +121,6 @@ begin
    dbg2 => dbg2,
    dbg3 => dbg3,
 
-   -- j1_p04 => j1_p04,
-   -- j1_p06 => j1_p06,
-   -- j1_p08 => j1_p08,
-   -- j1_p10 => j1_p10,
-
    dclk => dclk,
    dout => dout,
    din => din,
@@ -216,11 +130,6 @@ begin
    intClk => intClk,
    start => start,
    ready => ready,
-   
-   -- jc1 => jc1,
-   -- jc2 => jc2,
-   -- jc3 => jc3,
-   -- jc4 => jc4,
 
    initialReset => initialReset
    );
@@ -252,12 +161,13 @@ begin
 
  begin		
   dsel <= '1';
+
   -- hold reset state for 100 ns.
 
   wait for 100 ns;	
 
   delay(8);
-  -- ctlInit <= '0';
+
   initialReset <= '0';
 
   wait for sysClk_period*5;
