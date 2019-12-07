@@ -65,6 +65,13 @@ set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
 
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+
+set_global_assignment -name TOP_LEVEL_ENTITY Encoder
+
+set_global_assignment -name VHDL_FILE ../VHDL/QuadEncoder.vhd
 set_global_assignment -name VHDL_FILE ../VHDL/Encoder.vhd
 set_global_assignment -name VHDL_FILE ../VHDL/CmpTmr.vhd
 set_global_assignment -name VHDL_FILE ../VHDL/IntTmr.vhd
@@ -90,13 +97,7 @@ set_global_assignment -name VHDL_FILE ../VHDL/LatchBuf.vhd
 set_global_assignment -name QIP_FILE SystemClk.qip
 set_global_assignment -name QIP_FILE Multiplier.qip
 set_global_assignment -name QIP_FILE Memory.qip
-
 set_global_assignment -name SDC_FILE Encoder.sdc
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-
-set_global_assignment -name TOP_LEVEL_ENTITY Encoder
 
 #++ pins
 
@@ -182,8 +183,9 @@ set_location_assignment PIN_C3 -to dout
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dout
 set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dout
 
-set_location_assignment PIN_A2 -to encClk
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to encClk
+set_location_assignment PIN_A2 -to encClkOut
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to encClkOut
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to encClkOut
 
 set_location_assignment PIN_A3 -to ready
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to ready
@@ -196,24 +198,23 @@ set_location_assignment PIN_B4 -to intClk
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to intClk
 set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to intClk
 
-set_location_assignment PIN_A4 -to dbg0
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg0
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg0
+set_location_assignment PIN_A4 -to b_in
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to b_in
 
-set_location_assignment PIN_B5 -to dbg1
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg1
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg1
+set_location_assignment PIN_B5 -to a_in
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to a_in
 
-set_location_assignment PIN_A5 -to dbg2
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg2
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg2
+#set_location_assignment PIN_A5 -to reserved_GPIO_0-13[8]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-13[8]
+#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-13[8]
 
-set_location_assignment PIN_D5 -to dbg3
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg3
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg3
+#set_location_assignment PIN_D5 -to reserved_GPIO_0-14[9]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-14[9]
+#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-14[9]
 
-set_location_assignment PIN_B6 -to initialReset
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
+#set_location_assignment PIN_B6 -to reserved_GPIO_0-15[10]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-15[10]
+#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-15[10]
 
 #set_location_assignment PIN_A6 -to reserved_GPIO_0-16[11]
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-16[11]
@@ -227,21 +228,21 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-18[13]
 #set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-18[13]
 
-#set_location_assignment PIN_A7 -to reserved_GPIO_0-19[14]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-19[14]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-19[14]
+set_location_assignment PIN_A7 -to dbg1
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg1
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg1
 
-#set_location_assignment PIN_C6 -to reserved_GPIO_0-20[15]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-20[15]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-20[15]
+set_location_assignment PIN_C6 -to dbg0
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg0
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg0
 
-#set_location_assignment PIN_C8 -to reserved_GPIO_0-21[16]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-21[16]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-21[16]
+set_location_assignment PIN_C8 -to dbg3
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg3
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg3
 
-#set_location_assignment PIN_E6 -to reserved_GPIO_0-22[17]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-22[17]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-22[17]
+set_location_assignment PIN_E6 -to dbg2
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg2
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg2
 
 #set_location_assignment PIN_E7 -to reserved_GPIO_0-23[18]
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-23[18]
@@ -251,9 +252,8 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-24[19]
 #set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-24[19]
 
-#set_location_assignment PIN_E8 -to reserved_GPIO_0-25[20]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-25[20]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-25[20]
+set_location_assignment PIN_E8 -to initialReset
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
 
 #set_location_assignment PIN_F8 -to reserved_GPIO_0-26[21]
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-26[21]

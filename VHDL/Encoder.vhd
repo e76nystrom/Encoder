@@ -33,22 +33,26 @@ entity Encoder is
  port(
   sysClk : in std_logic;
   
-  led : out std_logic_vector(7 downto 0);
+  led : out std_logic_vector(7 downto 0) := (7 downto 0 => '0');
 
-  dbg0 : out std_logic;
-  dbg1 : out std_logic;
-  dbg2 : out std_logic;
-  dbg3 : out std_logic;
+  dbg0 : out std_logic := '0';
+  dbg1 : out std_logic := '0';
+  dbg2 : out std_logic := '0';
+  dbg3 : out std_logic := '0';
 
   dclk : in std_logic;
-  dout : out std_logic;
+  dout : out std_logic := '0';
   din  : in std_logic;
   dsel : in std_logic;
 
-  encClk  : in std_logic;
+  encClkOut  : out std_logic := '0';
   intClk  : out std_logic := '0';
   start  : in std_logic;
   ready  : out std_logic := '0';
+
+  a_in : in std_logic;
+  b_in : in std_logic;
+  -- sync_in : in std_logic;
   
   initialReset : in std_logic
   );
@@ -59,11 +63,22 @@ architecture Behavioral of Encoder is
  component SystemClk is
   PORT
    (
-    areset : IN STD_LOGIC  := '0';
-    inclk0 : IN STD_LOGIC  := '0';
-    c0 : OUT STD_LOGIC ;
-    locked : OUT STD_LOGIC 
+    areset : in std_logic  := '0';
+    inclk0 : in std_logic  := '0';
+    c0 : out std_logic ;
+    locked : out std_logic
     );
+ end component;
+
+ component QuadEncoder is
+  port (
+   clk : in std_logic;
+   a : in std_logic;
+   b : in std_logic;
+   ch : inout std_logic;
+   dir : out std_logic;
+   dir_ch : out std_logic;
+   err : out std_logic);
  end component;
 
  component SPI
@@ -108,34 +123,36 @@ architecture Behavioral of Encoder is
            cycleClkbits : positive := 32);
   port(
    clk : in std_logic;                   --system clock
+   initialReset : in std_logic;          --initial reset
    din : in std_logic;                   --spi data in
    dshift : in std_logic;                --spi shift signal
-   initialReset : in std_logic;          --initial reset
+   op: in unsigned (opBits-1 downto 0);  --current operation
+   copy: in std_logic;                   --copy for output
+   dout: out std_logic;                  --data out
    init : in std_logic;                  --init signal
    ena : in std_logic;                   --enable input
    encClk : in std_logic;                --encoder clock
-   cycleSel: in std_logic;               --cycle length register select
    encCycleDone: out std_logic;          --encoder cycle done
-   cycleClocks: inout unsigned (cycleClkBits-1 downto 0); --cycle counter
-   op: in unsigned (opBits-1 downto 0);
-   copy: in std_logic;
-   dout: out std_logic
+   cycleClocks: inout unsigned (cycleClkBits-1 downto 0) --cycle counter
    );
  end component;
 
  component IntTmr is
-  generic (cycleLenBits : positive := 16;
+  generic (opBits : positive := 8;
+           cycleLenBits : positive := 16;
            encClkBits : positive := 24;
            cycleClkbits : positive := 32);
   port(
-   clk : in std_logic;                 --system clock
-   din : in std_logic;                 --spi data in
-   dshift : in std_logic;              --spi shift in
-   initialReset : in std_logic;          --initial reset
-   init : in std_logic;                --init signal
-   intClk : out std_logic;             --output clock
-   cycleSel : in std_logic;            --cycle length register select
-   encCycleDone: in std_logic;         --encoder cycle done
+   clk : in std_logic;                  --system clock
+   din : in std_logic;                  --spi data in
+   dshift : in std_logic;               --spi shift in
+   initialReset : in std_logic;         --initial reset
+   op: in unsigned (opBits-1 downto 0); --current operation
+   copy: in std_logic;                  --copy for output
+   dout: out std_logic;                 --data out
+   init : in std_logic;                 --init signal
+   intClk : out std_logic;              --output clock
+   encCycleDone: in std_logic;          --encoder cycle done
    cycleClocks: in unsigned (cycleClkBits-1 downto 0) --cycle counter
    );
  end component;
@@ -155,6 +172,10 @@ architecture Behavioral of Encoder is
 
  signal clk1 : std_logic;
  signal locked : std_logic;
+
+ -- quadrature encoder outputs
+
+ signal encClk : std_logic;
 
  -- clock divider
 
@@ -181,20 +202,13 @@ architecture Behavioral of Encoder is
  constant encClkBits : positive := 24;
  constant cycleClkBits : positive := 32;
 
- -- signal encClk : std_logic;
- signal cmpCycleSel : std_logic;
  signal encCycleDone : std_logic;
  signal cycleClocks : unsigned (cycleClkBits-1 downto 0);
  signal doutCmpTmr : std_logic;
 
  -- intTmr
 
- signal intCycleSel : std_logic;
-
- -- constant rCtlSize : positive := 2;
- -- signal rCtlReg : unsigned (rCtlSize-1 downto 0) := "00";
- -- alias ctlInit : std_logic is rCtlReg(0);
- -- alias ctlEna  : std_logic is rCtlReg(1);
+ signal doutIntTmr : std_logic;
 
  type ctlFsm is (idle, setReady, init, enable);
  signal ctlState : ctlFsm := idle;
@@ -224,6 +238,21 @@ begin
    c0      => clk1,
    locked  => locked
    );
+
+ -- quadrature encoder
+ 
+ quad_encoder: QuadEncoder
+  port map (
+   clk => clk1,
+   a => a_in,
+   b => b_in,
+   ch => encClk,
+   dir => open,
+   dir_ch => open,
+   err => open
+   );
+
+ encClkOut <= encClk;
 
  -- clock divider
 
@@ -330,7 +359,7 @@ begin
   end if;
  end process;
 
- cmpCycleSel <= '1' when (op = XLDENCCYCLE) else '0';
+ -- cmpCycleSel <= '1' when (op = XLDENCCYCLE) else '0';
  
  cmp_tmr : CmpTmr
   generic map (cycleLenBits => cycleLenBits,
@@ -338,21 +367,18 @@ begin
                cycleClkbits => cycleClkBits)
   port map (
    clk => clk1,
+   initialReset => initialReset,
    din => din,
    dshift => dshift,
-   initialReset => initialReset,
+   op => op,
+   copy => copy,
+   dout => doutCmpTmr,
    init => ctlInit,
    ena => ctlEna,
    encClk => encClk,
-   cycleSel => cmpCycleSel,
    encCycleDone => encCycleDone,
-   cycleClocks => cycleClocks,
-   op => op,
-   copy => copy,
-   dout => doutCmpTmr
+   cycleClocks => cycleClocks
    );
-
- intCycleSel <= '1' when (op = XLDINTCYCLE) else '0';
 
  int_tmr : IntTmr
   generic map (cycleLenBits => cycleLenBits,
@@ -360,12 +386,14 @@ begin
                cycleClkbits => cycleClkBits)
   port map (
    clk => clk1,
+   initialReset => initialReset,
    din => din,
    dshift => dshift,
    init => ctlInit,
-   initialReset => initialReset,
+   op => op,
+   copy => copy,
+   dout => doutIntTmr,
    intClk => intClk,
-   cycleSel => intCycleSel,
    encCycleDone => encCycleDone,
    cycleClocks => cycleClocks
    );

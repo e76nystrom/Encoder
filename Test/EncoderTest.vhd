@@ -58,11 +58,14 @@ ARCHITECTURE behavior OF EncoderTest IS
    din  : in std_logic;
    dsel : in std_logic;
 
-   encClk  : in std_logic;
+   encClkOut  : out std_logic;
    intClk  : out std_logic;
    start  : in std_logic;
    ready  : out std_logic;
    
+   a_in : in std_logic;
+   b_in : in std_logic;
+
    initialReset : in std_logic
    );
  end component;
@@ -73,8 +76,10 @@ ARCHITECTURE behavior OF EncoderTest IS
  signal din : std_logic := '0';
  signal dsel : std_logic := '1';
 
- signal encClk : std_logic := '0';
  signal start : std_logic := '0';
+
+ signal a_in : std_logic := '0';
+ signal b_in : std_logic := '0';
 
  signal initialReset : std_logic := '1';
 
@@ -89,6 +94,7 @@ ARCHITECTURE behavior OF EncoderTest IS
 
  signal dout : std_logic;
 
+ signal encClkOut : std_logic;
  signal intClk : std_logic;
  signal ready : std_logic;
  
@@ -126,10 +132,13 @@ begin
    din => din,
    dsel => dsel,
 
-   encClk => encClk,
+   encClkOut => encClkOut,
    intClk => intClk,
    start => start,
    ready => ready,
+
+   a_in => a_in,
+   b_in => b_in,
 
    initialReset => initialReset
    );
@@ -159,6 +168,8 @@ begin
   loadValue(value, bits, dsel, din, dclk);
  end loadValue;
 
+ variable count : integer;
+ 
  begin		
   dsel <= '1';
 
@@ -186,11 +197,25 @@ begin
   end loop;
   start <= '0';
 
+  count := 0;
   for j in 0 to 160-1 loop               --number of encoder pulses
    delay(18);                     	--18+2 clocks between encoder pulses
-   encClk <= '1';                       --generate encoder pulse
+   -- encClk <= '1';                       --generate encoder pulse
    delay(2);
-   encClk <= '0';                       --end encoder pulse
+   -- encClk <= '0';                       --end encoder pulse
+   count := count + 1;
+   if (count > 3) then
+    count := 0;
+   end if;
+   if (count = 0) then
+    b_in <= '0';
+   elsif (count = 1) then
+    a_in <= '1';
+   elsif (count = 2) then
+    b_in <= '1';
+   elsif (count = 3) then
+    a_in <= '0';
+   end if;
   end loop;
   
   loadParm(XRDCmpCycClks);

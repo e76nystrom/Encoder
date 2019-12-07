@@ -29,18 +29,23 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+use work.RegDef.all;
+
 entity IntTmr is
- generic(cycleLenBits : positive := 16;
-          encClkBits : positive := 24;
-          cycleClkbits : positive := 32);
+ generic(opBits : positive := 8;
+         cycleLenBits : positive := 16;
+         encClkBits : positive := 24;
+         cycleClkbits : positive := 32);
  port(
   clk : in std_logic;                   --system clock
+  initialReset : in std_logic;          --initial reset
   din : in std_logic;                   --spi data in
   dshift : in std_logic;                --spi shift in
-  initialReset : in std_logic;          --initial reset
+  op: in unsigned (opBits-1 downto 0);  --current operation
+  copy: in std_logic;                   --copy for output
+  dout: out std_logic;                  --data out
   init : in std_logic;                  --init signal
   intClk : out std_logic := '0';        --output clock
-  cycleSel : in std_logic;              --cycle length register select
   encCycleDone : in std_logic;          --encoder cycle done
   cycleClocks: in unsigned (cycleClkBits-1 downto 0) --cycle counter
   );
@@ -166,7 +171,7 @@ architecture Behavioral of IntTmr is
 
 begin
 
- cycleLenShift <= cycleSel and dshift;
+ cycleLenShift <= '1' when ((op = XLDINTCYCLE) and (dshift = '1'))else '0';
  
  cycleLenReg: Shift                     --register for cycle length
   generic map(cycleLenBits)

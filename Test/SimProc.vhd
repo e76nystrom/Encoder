@@ -32,7 +32,7 @@ package SimProc is
 
  procedure loadShift(signal value : in natural;
                      constant bits : in natural;
-                     signal sel : out std_logic;
+                     -- signal sel : out std_logic;
                      signal shift : out std_logic;
                      signal din : out std_logic);
 
@@ -104,13 +104,13 @@ package body SimProc is
 
  procedure loadShift(signal value : in natural;
                      constant bits : in natural;
-                     signal sel : out std_logic;
+                     -- signal sel : out std_logic;
                      signal shift : out std_logic;
                      signal din : out std_logic) is
   variable tmp: unsigned(32-1 downto 0);
  begin
   tmp := to_unsigned(value, 32);
-  sel <= '1';
+  -- sel <= '1';
   shift <= '1';
   for i in 0 to bits loop
    wait until sysClk = '1';
@@ -119,7 +119,7 @@ package body SimProc is
    wait until sysClk = '0';
   end loop;
   shift <= '0';
-  sel <= '0';
+  -- sel <= '0';
  end procedure loadShift;
 
 end SimProc;

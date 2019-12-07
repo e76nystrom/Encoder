@@ -1,5 +1,11 @@
+*
+!/**/
+!*.*
 *~
 *.bak
+.*
+#*
+*#
 VHDL/*.qar
 VHDL/*.qarlog
 VHDL/*.ddb
@@ -20,11 +26,8 @@ Proj/incremental_db/*
 Proj/output_files/*
 Proj/simulation/*
 Proj/.qsys_edit/*
-
+Proj/Encoder.out.sdc
 *.rpt
-
 Sim/msim_transcript
-
 Sim/transcript
-
 Sim/wlftnb77ti

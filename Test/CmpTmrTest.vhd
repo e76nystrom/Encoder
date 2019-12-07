@@ -49,18 +49,17 @@ ARCHITECTURE behavior OF CmpTmrTest IS
            cycleClkbits : positive);
   port(
    clk : in  std_logic;
+   initialReset : in std_logic;
    din : in  std_logic;
    dshift : in  std_logic;
-   initialReset : in std_logic;          --initial reset
+   op: inout unsigned (opBits-1 downto 0);
+   copy: in std_logic;
+   dout: out std_logic;
    init : in  std_logic;
    ena : in  std_logic;
    encClk : in  std_logic;
-   cycleSel : in  std_logic;
-   encCycleDone: out std_logic;          --encoder cycle done
-   cycleClocks : inout unsigned (cycleClkBits-1 downto 0);
-   op: inout unsigned (opBits-1 downto 0);
-   copy: in std_logic;
-   dout: out std_logic
+   encCycleDone: out std_logic;
+   cycleClocks : inout unsigned (cycleClkBits-1 downto 0)
    );
  end component;
 
@@ -77,8 +76,7 @@ ARCHITECTURE behavior OF CmpTmrTest IS
  signal init : std_logic := '0';
  signal ena : std_logic := '0';
  signal encClk : std_logic := '0';
- signal cycleSel : std_logic := '0';
- signal op : unsigned (opBits-1 downto 0) := x"00"; --unsigned (opBits-1 downto 0 => '0');
+ signal op : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
  signal copy : std_logic := '0';
 
  --BiDirs
@@ -115,18 +113,17 @@ begin
               cycleClkbits => cycleClkBits)
   port map (
    clk => sysClk,
+   initialReset => initialReset,
    din => din,
    dshift => dshift,
-   initialReset => initialReset,
+   op => op,
+   copy => copy,
+   dout => dout,
    init => init,
    ena => ena,
    encClk => encClk,
-   cycleSel => cycleSel,
    encCycleDone => encCycleDone,
-   cycleClocks => cycleClocks,
-   op => op,
-   copy => copy,
-   dout => dout
+   cycleClocks => cycleClocks
    );
 
  -- Clock process definitions
@@ -157,19 +154,8 @@ begin
   initialReset <= '0';
   init <= '0';
 
-  -- tmp <= to_signed(encCycle, cycleLenBits);
-  -- cycleSel <= '1';
-  -- dshift <= '1';
-  -- for i in 0 to cycleLenBits loop
-  --  wait until sysClk = '1';
-  --  din <= tmp(cycleLenBits - 1);
-  --  tmp <= shift_left(tmp, 1);
-  --  wait until sysClk = '0';
-  -- end loop;
-  -- dshift <= '0';
-  -- cycleSel <= '0';
-
-  loadShift(encCycle, cycleLenBits, cycleSel, dshift, din);
+  op <= XLDENCCYCLE;
+  loadShift(encCycle, cycleLenBits, dshift, din);
 
   delay(5);
 

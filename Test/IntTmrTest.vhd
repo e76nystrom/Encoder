@@ -42,23 +42,27 @@ ARCHITECTURE behavior OF IntTmrTest IS
  
  -- Component Declaration for the Unit Under Test (UUT)
  
- COMPONENT IntTmr
-  generic (cycleLenBits : positive;
-   encClkBits : positive;
-   cycleClkbits : positive);
-  PORT(
+ component IntTmr
+  generic (opBits : positive;
+           cycleLenBits : positive;
+           encClkBits : positive;
+           cycleClkbits : positive);
+  port(
    clk : in std_logic;
+   initialReset : in std_logic;
    din : in std_logic;
    dshift : in std_logic;
-   initialReset : in std_logic;
+   op: inout unsigned (opBits-1 downto 0);
+   copy: in std_logic;
+   dout: out std_logic;
    init : in std_logic;
    intClk : out std_logic;
-   cycleSel : in std_logic;
    encCycleDone : in std_logic;
    cycleClocks : in unsigned(cycleClkBits-1 downto 0)
    );
- END COMPONENT;
+ end component;
  
+ constant opBits : positive := 8;
  constant cycleLenBits : natural := 16;
  constant encClkBits : positive := 24;
  constant cycleClkbits : positive := 32;
@@ -77,48 +81,41 @@ ARCHITECTURE behavior OF IntTmrTest IS
  signal dsel : std_logic := '0';
  signal init : std_logic := '0';
  signal initialReset : std_logic := '1';
- signal cycleSel : std_logic := '0';
+ signal op : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
+ signal copy : std_logic := '0';
  signal encCycleDone : std_logic := '0';
  signal cycleClocks : unsigned(cycleClkBits-1 downto 0) := (others => '0');
 
  --Outputs
  signal intClk : std_logic;
-
- -- Clock period definitions
- -- constant clk_period : time := 10 ns;
- -- constant intClk_period : time := 10 ns;
+ signal dout : std_logic;
  
  signal tmp : signed(cycleLenBits-1 downto 0);
-
- -- procedure delay(constant n : in integer) is
- -- begin
- --  for i in 0 to n-1 loop
- --   wait until sysClk = '1';
- --   wait until sysClk = '0';
- --  end loop;
- -- end procedure delay;
 
  signal clks : unsigned(counterBits-1 downto 0);
  signal cycles : unsigned(counterBits-1 downto 0);
 
-BEGIN
+begin
  
  -- Instantiate the Unit Under Test (UUT)
  uut: IntTmr
-    generic map(cycleLenBits => cycleLenBits,
+  generic map(opbits => opBits,
+              cycleLenBits => cycleLenBits,
               encClkBits => encClkBits,
               cycleClkbits => cycleClkBits)
-  PORT MAP (
-  clk => sysClk,
-  din => din,
-  dshift => dshift,
-  initialReset => initialReset,
-  init => init,
-  intClk => intClk,
-  cycleSel => cycleSel,
-  encCycleDone => encCycleDone,
-  cycleClocks => cycleClocks
-  );
+  port map (
+   clk => sysClk,
+   initialReset => initialReset,
+   din => din,
+   dshift => dshift,
+   op => op,
+   copy => copy,
+   dout => dout,
+   init => init,
+   intClk => intClk,
+   encCycleDone => encCycleDone,
+   cycleClocks => cycleClocks
+   );
 
  -- Clock process definitions
  clk_process :process
@@ -152,7 +149,8 @@ BEGIN
   init <= '0';
   initialReset <= '0';
 
-  loadShift(intCycle, cycleLenBits, cycleSel, dshift, din);
+  op <= XLDINTCYCLE;
+  loadShift(intCycle, cycleLenBits, dshift, din);
 
   delay(5);
 
