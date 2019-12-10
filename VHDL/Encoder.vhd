@@ -290,8 +290,7 @@ begin
 
  -- spi return data
 
- -- dout <= outReg(out_bits-1);
- dout <= doutCmpTmr;
+ dout <= doutCmpTmr or doutIntTmr;
 
  outReg_proc : process(clk1)
  begin

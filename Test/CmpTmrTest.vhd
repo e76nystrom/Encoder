@@ -69,7 +69,6 @@ ARCHITECTURE behavior OF CmpTmrTest IS
  constant cycleClkbits : positive := 32;
 
  --Inputs
- -- signal clk : std_logic := '0';
  signal din : std_logic := '0';
  signal dshift : std_logic := '0';
  signal initialReset : std_logic := '1';
@@ -86,20 +85,7 @@ ARCHITECTURE behavior OF CmpTmrTest IS
  signal dout: std_logic;
  signal encCycleDone : std_logic;
 
- -- Clock period definitions
- -- constant clk_period : time := 10 ns;
- 
  signal tmp : signed(cycleLenBits-1 downto 0);
-
- -- procedure delay(constant n : in integer) is
- -- begin
- --  for i in 0 to n-1 loop
- --   wait until clk = '1';
- --   wait until clk = '0';
- --  end loop;
- -- end procedure delay;
-
- signal encCycle : natural := 5;
 
  signal k : unsigned (7 downto 0);
 
@@ -107,10 +93,10 @@ begin
  
  -- Instantiate the Unit Under Test (UUT)
  uut: CmpTmr
-  generic map(opBits => opBits,
-              cycleLenBits => cycleLenBits,
-              encClkBits => encClkBits,
-              cycleClkbits => cycleClkBits)
+  generic map (opBits => opBits,
+               cycleLenBits => cycleLenBits,
+               encClkBits => encClkBits,
+               cycleClkbits => cycleClkBits)
   port map (
    clk => sysClk,
    initialReset => initialReset,
@@ -137,6 +123,9 @@ begin
 
  -- Stimulus process
  stim_proc: process
+
+ variable encCycle : integer := 5;
+
  begin		
   -- hold reset state for 100 ns.
 
@@ -154,7 +143,7 @@ begin
   initialReset <= '0';
   init <= '0';
 
-  op <= XLDENCCYCLE;
+  op <= F_Ld_Enc_Cycle;
   loadShift(encCycle, cycleLenBits, dshift, din);
 
   delay(5);

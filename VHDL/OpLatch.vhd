@@ -38,7 +38,7 @@ entity OpLatch is
  port (
   clk : in std_logic;
   op : in unsigned(opb-1 downto 0);
-  opSel : out std_logic);
+  opSel : out std_logic := '0');
 end OpLatch;
 
 architecture Behavioral of OpLatch is

@@ -30,11 +30,16 @@ package SimProc is
                      signal din : out std_logic;
                      signal dclk : out std_logic);
 
- procedure loadShift(signal value : in natural;
+ procedure loadShift(variable value : in integer;
                      constant bits : in natural;
-                     -- signal sel : out std_logic;
                      signal shift : out std_logic;
                      signal din : out std_logic);
+
+ procedure loadCtl(variable value : in integer;
+                   constant bits : in natural;
+                   signal shift : out std_logic;
+                   signal din : out std_logic;
+                   signal load : out std_logic);
 
 end SimProc;
 
@@ -102,24 +107,42 @@ package body SimProc is
   delay(10);
  end procedure loadValue;
 
- procedure loadShift(signal value : in natural;
+ procedure loadShift(variable value : in natural;
                      constant bits : in natural;
-                     -- signal sel : out std_logic;
                      signal shift : out std_logic;
                      signal din : out std_logic) is
   variable tmp: unsigned(32-1 downto 0);
  begin
   tmp := to_unsigned(value, 32);
-  -- sel <= '1';
   shift <= '1';
-  for i in 0 to bits loop
-   wait until sysClk = '1';
+  for i in 0 to bits-1 loop
    din <= tmp(bits - 1);
+   wait until sysClk = '1';
    tmp := shift_left(tmp, 1);
    wait until sysClk = '0';
   end loop;
   shift <= '0';
-  -- sel <= '0';
  end procedure loadShift;
+
+ procedure loadCtl(variable value : in natural;
+                   constant bits : in natural;
+                   signal shift : out std_logic;
+                   signal din : out std_logic;
+                   signal load : out std_logic) is
+  variable tmp: unsigned(32-1 downto 0);
+ begin
+  tmp := to_unsigned(value, 32);
+  shift <= '1';
+  for i in 0 to bits-1 loop
+   din <= tmp(bits - 1);
+   wait until sysClk = '1';
+   tmp := shift_left(tmp, 1);
+   wait until sysClk = '0';
+  end loop;
+  shift <= '0';
+  load <= '1';
+  delay(2);
+  load <= '0';
+ end procedure loadCtl;
 
 end SimProc;

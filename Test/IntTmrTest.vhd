@@ -69,7 +69,6 @@ ARCHITECTURE behavior OF IntTmrTest IS
 
  constant cycleCount : positive := 10;
  constant cycleLen : natural := 105;
- signal intCycle : natural := 10;
 
  constant counterBits : positive := 8;
 
@@ -129,6 +128,9 @@ begin
   -- Stimulus process
 
  stim_proc: process
+
+ variable intCycle : integer := 10;
+
  procedure loadValue(signal value : in natural;
                      constant bits : in natural) is
  begin
@@ -149,7 +151,7 @@ begin
   init <= '0';
   initialReset <= '0';
 
-  op <= XLDINTCYCLE;
+  op <= F_Ld_Int_Cycle;
   loadShift(intCycle, cycleLenBits, dshift, din);
 
   delay(5);

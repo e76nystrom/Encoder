@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: 
 -- 
@@ -16,7 +16,7 @@
 -- Revision 0.01 - File Created
 -- Additional Comments: 
 --
----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -43,7 +43,7 @@ entity IntTmr is
   dshift : in std_logic;                --spi shift in
   op: in unsigned (opBits-1 downto 0);  --current operation
   copy: in std_logic;                   --copy for output
-  dout: out std_logic;                  --data out
+  dout: out std_logic := '0';           --data out
   init : in std_logic;                  --init signal
   intClk : out std_logic := '0';        --output clock
   encCycleDone : in std_logic;          --encoder cycle done
@@ -171,7 +171,9 @@ architecture Behavioral of IntTmr is
 
 begin
 
- cycleLenShift <= '1' when ((op = XLDINTCYCLE) and (dshift = '1'))else '0';
+ dout <= '0';
+ 
+ cycleLenShift <= '1' when ((op = F_Ld_Int_Cycle) and (dshift = '1'))else '0';
  
  cycleLenReg: Shift                     --register for cycle length
   generic map(cycleLenBits)

@@ -29,8 +29,7 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
--- library RegDef
--- use RegDef.all;
+use work.RegDef.all;
 
 entity CtlReg is
  generic(opVal : unsigned;
@@ -42,34 +41,36 @@ entity CtlReg is
   op : in unsigned(opb-1 downto 0);     --current reg address
   shift : in std_logic;                 --shift data
   load : in std_logic;                  --load to data register
-  data : inout  unsigned (n-1 downto 0)); --data register
+  data : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '0'));
 end CtlReg;
 
 architecture Behavioral of CtlReg is
 
- component OpLatch is
-  generic(opb : positive;
-          opVal : unsigned);
-  port (
-   clk : in std_logic;
-   op : in unsigned(opb-1 downto 0);
-   opSel : out std_logic);
- end component;
+ -- component OpLatch is
+ --  generic(opb : positive;
+ --          opVal : unsigned);
+ --  port (
+ --   clk : in std_logic;
+ --   op : in unsigned(opb-1 downto 0);
+ --   opSel : out std_logic);
+ -- end component;
 
-signal sreg : unsigned (n-1 downto 0) := (n-1 downto 0 => '0');
-signal ctl_op : std_logic;
-signal ctl_shift : std_logic;
-signal ctl_load : std_logic;
+ signal sreg : unsigned (n-1 downto 0) := (n-1 downto 0 => '0');
+ signal ctl_op : std_logic;
+ signal ctl_shift : std_logic;
+ signal ctl_load : std_logic;
 
 begin
 
- latch_proc : OpLatch
-  generic map(opb => opb,
-              opVal => opVal)
-  port map(
-   clk => clk,
-   op => op,
-   opSel => ctl_op);
+ -- latch_proc : OpLatch
+ --  generic map(opb => opb,
+ --              opVal => opVal)
+ --  port map(
+ --   clk => clk,
+ --   op => op,
+ --   opSel => ctl_op);
+
+ ctl_op <= '1' when op = opVal else '0';
 
  ctl_shift <= '1' when ((ctl_op = '1') and (shift = '1')) else '0';
  ctl_load <= '1' when ((ctl_op = '1') and (load = '1')) else '0';

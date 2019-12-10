@@ -185,10 +185,10 @@ begin
 
   -- insert stimulus here
 
-  loadParm(XLDENCCYCLE);
+  loadParm(F_Ld_Enc_Cycle);
   loadValue(encCycle, cycleLenBits);
 
-  loadParm(XLDINTCYCLE);
+  loadParm(F_Ld_Int_Cycle);
   loadValue(intCycle, cycleLenBits);
 
   start <= '1';
@@ -218,7 +218,7 @@ begin
    end if;
   end loop;
   
-  loadParm(XRDCmpCycClks);
+  loadParm(F_Rd_Cmp_Cyc_Clks);
 
   for i in 0 to cycleClkBits-1 loop     --load value
    dclk <= '0';

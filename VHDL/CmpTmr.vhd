@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: 
 -- 
@@ -16,7 +16,7 @@
 -- Revision 0.01 - File Created
 -- Additional Comments: 
 --
----------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -202,15 +202,14 @@ begin
 
  dout_mux: process(op, doutCycClks)
  begin
-  if (op = XRDCmpCycClks) then
+  if (op = F_Rd_Cmp_Cyc_Clks) then
    dout <= doutCycClks;
   else
    dout <= '0';
   end if;
  end process dout_mux;
 
- cycleLenShift <= '1' when ((op = XLDENCCYCLE) and (dshift = '1')) else '0';
- -- cycleLenShift <= cycleSel and dshift;
+ cycleLenShift <= '1' when ((op = F_Ld_Enc_Cycle) and (dshift = '1')) else '0';
  
  cycleLenReg: Shift                     --register for cycle length
   generic map(cycleLenBits)
@@ -285,7 +284,8 @@ begin
    b => unsigned(encCntClks(cycleClkBits-1 downto 0)),
    sum => cycleClocks);
 
- cycleClocksShift <= '1' when (op = XRDCmpCycClks) and (dshift = '1') else '0';
+ cycleClocksShift <= '1' when (op = F_Rd_Cmp_Cyc_Clks) and (dshift = '1')
+                     else '0';
 
  cycleClocksOut: ShiftOut
   generic map(cycleClkBits)

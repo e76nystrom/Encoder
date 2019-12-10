@@ -37,7 +37,7 @@ entity DownCounter is
         load : in std_logic;
         preset : in unsigned (n-1 downto 0);
         counter : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '0');
-        zero : out std_logic);
+        zero : out std_logic := '0');
 end DownCounter;
 
 architecture Behavioral of DownCounter is
