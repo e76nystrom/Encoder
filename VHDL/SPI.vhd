@@ -36,11 +36,11 @@ entity SPI is
   dclk : in std_logic;                   --spi clk
   dsel : in std_logic;                   --spi select
   din : in std_logic;                    --spi data in
-  op : out unsigned(opBits-1 downto 0) := x"00";  --op code
-  copy : out std_logic;                  --copy data to be shifted out
-  shift : out std_logic;                 --shift data
-  load : out std_logic;                  --load data shifted in
-  header : inout std_logic := '0'
+  op : out unsigned(opBits-1 downto 0) := (opBits-1 downto 0 => '0');  --op code
+  copy : out std_logic := '0';          --copy data to be shifted out
+  shift : out std_logic := '0';         --shift data
+  load : out std_logic := '0';          --load data shifted in
+  header : inout std_logic := '0'       --receiving header
   --info : out std_logic_vector(2 downto 0) --state info
   );
 end SPI;
@@ -74,8 +74,8 @@ architecture Behavioral of SPI is
  --  when start     => return("111");
  --  when idle      => return("000");
  --  when read_hdr  => return("001");
- --  when chk_count => return("011");
- --  when dec_count => return("010");
+ --  when chk_count => return("010");
+ --  when upd_count => return("011");
  --  when active    => return("100");
  --  when dclk_wait => return("101");
  --  when load_reg  => return("110");
@@ -116,7 +116,7 @@ begin
      copy <= '0';
      if (dselEna = '1') then
       header <= '1';
-      opReg <= "00000000";
+      opReg <= (opBits-1 downto 0 => '0');
       count <= "1000";
       state <= read_hdr;
      end if;

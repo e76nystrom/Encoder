@@ -31,12 +31,13 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity Shift is
  generic(n : positive);
- port ( clk : in std_logic;
-        init : in std_logic;
-        din : in std_logic;
-        shift : in std_logic;
-        data : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0')
-        );
+ port(
+  clk : in std_logic;
+  init : in std_logic;
+  din : in std_logic;
+  shift : in std_logic;
+  data : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0')
+  );
 end Shift;
 
 architecture Behavioral of Shift is

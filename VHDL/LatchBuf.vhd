@@ -37,7 +37,7 @@ entity LatchBuf is
   clr : in std_logic;
   ena : in std_logic;
   input : in unsigned (n0-1 downto 0);
-  latchBuf : out unsigned (n1-1 downto 0) := (n1-1 downto 0 => '0');
+  latchBuf : out unsigned (n1-1 downto 0) := (n1-1 downto 0 => '0'));
 end LatchBuf;
 
 architecture Behavioral of LatchBuf is

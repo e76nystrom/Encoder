@@ -29,56 +29,80 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+use work.regDef.all;
+
 entity Encoder is
  port(
   sysClk : in std_logic;
   
   led : out std_logic_vector(7 downto 0) := (7 downto 0 => '0');
-
-  dbg0 : out std_logic := '0';
-  dbg1 : out std_logic := '0';
-  dbg2 : out std_logic := '0';
-  dbg3 : out std_logic := '0';
+  dbg : out std_logic_vector(7 downto 0) := (7 downto 0 => '0');
+  anode : out std_logic_vector(3 downto 0) := (3 downto 0 => '1');
+  seg : out std_logic_vector(6 downto 0) := (6 downto 0 => '1');
 
   dclk : in std_logic;
   dout : out std_logic := '0';
   din  : in std_logic;
   dsel : in std_logic;
 
-  encClkOut  : out std_logic := '0';
-  intClk  : out std_logic := '0';
+  encClkOut : out std_logic;
+  intClkOut : out std_logic;
   start  : in std_logic;
   ready  : out std_logic := '0';
 
   a_in : in std_logic;
-  b_in : in std_logic;
+  b_in : in std_logic
   -- sync_in : in std_logic;
   
-  initialReset : in std_logic
+  -- EPCS_ASDO : out std_logic;
+  -- EPCS_DATA0 : in std_logic;
+  -- EPCS_DCLK : out std_logic;
+  -- EPCS_NCSO : out std_logic
   );
 end Encoder;
 
 architecture Behavioral of Encoder is
 
  component SystemClk is
-  PORT
-   (
-    areset : in std_logic  := '0';
-    inclk0 : in std_logic  := '0';
-    c0 : out std_logic ;
-    locked : out std_logic
-    );
+  port(
+   areset : in std_logic  := '0';
+   inclk0 : in std_logic  := '0';
+   c0 : out std_logic ;
+   locked : out std_logic
+   );
+ end component;
+
+ component Display is
+  port (
+   clk : in std_logic;
+   dspReg : in unsigned(15 downto 0);
+   digSel : in unsigned(1 downto 0);
+   anode : out std_logic_vector(3 downto 0);
+   seg : out std_logic_vector(6 downto 0)
+   );
+ end component;
+
+ component Shift is
+  generic(n : positive);
+  port(
+   clk : in std_logic;
+   init : in std_logic;
+   shift : in std_logic;
+   din : in std_logic;
+   data : inout unsigned (n-1 downto 0)
+   );
  end component;
 
  component QuadEncoder is
-  port (
+  port(
    clk : in std_logic;
    a : in std_logic;
    b : in std_logic;
    ch : inout std_logic;
    dir : out std_logic;
    dir_ch : out std_logic;
-   err : out std_logic);
+   err : out std_logic
+   );
  end component;
 
  component SPI
@@ -113,7 +137,8 @@ architecture Behavioral of Encoder is
   port(
    clk : in  std_logic;
    ena : in  std_logic;
-   clkena : out std_logic);
+   clkena : out std_logic
+   );
  end component;
 
  component CmpTmr
@@ -144,9 +169,9 @@ architecture Behavioral of Encoder is
            cycleClkbits : positive := 32);
   port(
    clk : in std_logic;                  --system clock
+   initialReset : in std_logic;         --initial reset
    din : in std_logic;                  --spi data in
    dshift : in std_logic;               --spi shift in
-   initialReset : in std_logic;         --initial reset
    op: in unsigned (opBits-1 downto 0); --current operation
    copy: in std_logic;                  --copy for output
    dout: out std_logic;                 --data out
@@ -157,16 +182,17 @@ architecture Behavioral of Encoder is
    );
  end component;
 
+ component PulseGen is
+  generic (step_width : positive := 25);
+  port (
+   clk : in std_logic;
+   step_in : in std_logic;
+   step_out : out std_logic
+   );
+ end component;
+
  constant opb : positive := 8;
  constant opBits : positive := 8;
-
--- skip register zero
-
- constant XNOOP        : unsigned(opb-1 downto 0) := x"00"; -- register 0
-
- constant XLDENCCYCLE : unsigned (opBits-1 downto 0) := x"01";
- constant XLDINTCYCLE : unsigned (opBits-1 downto 0) := x"02";
- constant XLDCTL : unsigned (opBits-1 downto 0) := x"03";
 
  -- system clock
 
@@ -181,10 +207,15 @@ architecture Behavioral of Encoder is
 
  constant div_range : integer := 26;
  signal div : unsigned (div_range downto 0);
+ alias digSel: unsigned(1 downto 0) is div(19 downto 18);
 
+ -- initialzation and start control variables
+
+ constant delayBits : integer := 4;
+ signal initialReset : std_logic := '0';
  signal ctlInit : std_logic := '0';
  signal ctlEna  : std_logic := '0';
- signal ctlDelay : unsigned (4-1 downto 0);
+ signal ctlDelay : unsigned (delayBits-1 downto 0) := (delayBits-1 downto 0 => '1');
 
  -- spi interface
 
@@ -208,10 +239,24 @@ architecture Behavioral of Encoder is
 
  -- intTmr
 
+ signal intClk : std_logic;
  signal doutIntTmr : std_logic;
 
- type ctlFsm is (idle, setReady, init, enable);
- signal ctlState : ctlFsm := idle;
+ type ctlFsm is (initial, reset, idle, setReady, init, enable);
+ signal ctlState : ctlFsm := initial;
+
+ -- display signals
+
+ constant dspBits : integer := 16;
+ signal dspReg : unsigned(opb-1 downto 0);
+ -- signal dspUpd : std_logic;
+ signal dspData : unsigned(15 downto 0);
+ signal dspShift : std_logic;
+
+ -- test signals
+
+ signal test1 : std_logic;
+ signal test2 : std_logic;
 
 begin
 
@@ -219,15 +264,40 @@ begin
  led(6) <= div(div_range);
  led(5) <= div(div_range-1);
  led(4) <= div(div_range-2);
- led(3) <= div(div_range);
- led(2) <= div(div_range);
- led(1) <= div(div_range);
- led(0) <= div(div_range);
+ led(3) <= op(3);
+ led(2) <= op(2);
+ led(1) <= op(1);
+ led(0) <= op(0);
 
- dbg0 <= div(div_range-3);
- dbg1 <= div(div_range-4);
- dbg2 <= header;
- dbg3 <= load;
+ -- test 1 output pulse
+
+ testOut1 : PulseGen
+  generic map (step_width => 25)
+  port map (
+   clk => clk1,
+   step_in => encCycleDone,
+   step_out => test1
+   );
+
+-- test 2 output pulse
+
+ testOut2 : PulseGen
+  generic map (step_width => 25)
+  port map (
+   clk => clk1,
+   step_in => load,
+   step_out => test2
+   );
+
+ dbg(0) <= header;
+ dbg(1) <= test1;
+ dbg(2) <= test2;
+ dbg(3) <= div(div_range-3);
+
+ dbg(4) <= div(div_range-4);
+ dbg(5) <= div(div_range-5);
+ dbg(6) <= div(div_range-6);
+ dbg(7) <= div(div_range-7);
 
  -- system clock
 
@@ -252,7 +322,15 @@ begin
    err => open
    );
 
- encClkOut <= encClk;
+ -- encoder output
+
+ enc_clk_out : PulseGen
+  generic map (step_width => 50)
+  port map (
+   clk => clk1,
+   step_in => encClk,
+   step_out => encClkOut
+   );
 
  -- clock divider
 
@@ -270,6 +348,31 @@ begin
  --   clk => clk1,
  --   ena => div(20),
  --   clkena => encClk);
+
+ -- display register
+
+ dspShift <= '1' when ((op = F_Ld_Enc_Cycle) and (dshift = '1')) else '0';
+
+ display_reg: Shift
+  generic map(dspBits)
+  port map(
+   clk => clk1,
+   init => '0',
+   shift => dspShift,
+   din => din,
+   data => dspData
+   );
+
+ -- led display
+
+ led_display : Display
+  port map (
+   clk => clk1,
+   dspReg => dspData,
+   digSel => digSel,
+   anode => anode,
+   seg => seg
+   );
 
  -- spi interface
 
@@ -295,7 +398,6 @@ begin
  outReg_proc : process(clk1)
  begin
   if (rising_edge(clk1)) then
---   if (copy = '1') or ((dspUpd = '1') and (dsel = '1')) then
    if (copy = '1') then
     case op is
      when x"00" => 
@@ -329,11 +431,26 @@ begin
  begin
   if (rising_edge(clk1)) then            --if clock active
    case ctlState is
+    when initial =>
+     initialReset <= '1';
+     ready <= '0';
+     ctlDelay <= (delayBits-1 downto 0 => '1');
+     ctlState <= reset;
+
+    when reset =>
+     if (ctlDelay = 0) then
+      initialReset <= '0';
+      ctlState <= idle;
+     else
+      ctlDelay <= ctlDelay - 1;
+     end if;
+
     when idle =>
      if (start = '1') then
+      ready <= '0';
       ctlEna <= '0';
       ctlInit <= '1';
-      ctlDelay <= x"f";
+      ctlDelay <= (delayBits-1 downto 0 => '1');
       ctlState <= init;
      end if;
      
@@ -358,8 +475,6 @@ begin
   end if;
  end process;
 
- -- cmpCycleSel <= '1' when (op = XLDENCCYCLE) else '0';
- 
  cmp_tmr : CmpTmr
   generic map (cycleLenBits => cycleLenBits,
                encClkBits => encClkBits,
@@ -395,6 +510,16 @@ begin
    intClk => intClk,
    encCycleDone => encCycleDone,
    cycleClocks => cycleClocks
+   );
+
+ -- intTmr  output
+
+ int_tmr_out : PulseGen
+  generic map (step_width => 50)
+  port map (
+   clk => clk1,
+   step_in => intClk,
+   step_out => intClkOut
    );
 
 end Behavioral;
