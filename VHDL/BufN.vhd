@@ -2,9 +2,9 @@
 -- Company: 
 -- Engineer: 
 -- 
--- Create Date:    17:34:36 01/24/2015 
+-- Create Date:    18:00:00 12/23/2010
 -- Design Name: 
--- Module Name:    LatchBuf - Behavioral 
+-- Module Name:    BufN - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -29,32 +29,26 @@ use IEEE.NUMERIC_STD.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity LatchBuf is
- generic (n0 : positive;
-          n1 : positive);
+entity BufN is
+ generic(n : positive);
  port (
   clk : in std_logic;
-  clr : in std_logic;
   ena : in std_logic;
-  input : in unsigned (n0-1 downto 0);
-  latchBuf : out unsigned (n1-1 downto 0) := (n1-1 downto 0 => '0'));
-end LatchBuf;
+  bufIn  : in unsigned (n-1 downto 0);
+  bufOut : out unsigned (n-1 downto 0) := (others => '0'));
+end BufN;
 
-architecture Behavioral of LatchBuf is
+architecture Behavioral of BufN is
 
 begin
 
- latchProc: process(clk)
+ BufProcess: process(clk)
  begin
   if (rising_edge(clk)) then
-   if (clr = '1') then
-    latchBuf <= (n1-1 downto 0 => '0');
-   else
-    if (ena = '1') then
-     latchBuf <= input(n1-1 downto 0);
-    end if;
+   if (ena = '1') then
+    bufOut <= bufIn;
    end if;
   end if;
- end process latchProc;
+ end process BufProcess;
 
 end Behavioral;

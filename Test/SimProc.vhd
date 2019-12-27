@@ -5,10 +5,10 @@ use IEEE.NUMERIC_STD.ALL;
 package SimProc is
 
  -- Clock period definitions
- constant sysClk_period : time := 10 ns;
+ constant clk_period : time := 10 ns;
  constant opbx : positive := 8;
 
- signal sysClk : std_logic := '0';
+ signal clk : std_logic := '0';
 
  -- signal dsel : std_logic;
  -- signal dout : std_logic;
@@ -56,7 +56,7 @@ package body SimProc is
 
  procedure delay(constant n : in integer) is
  begin
-  delay(n, sysClk);
+  delay(n, clk);
  end procedure delay;
 
  procedure loadParm(constant parmIdx : in unsigned (opbx-1 downto 0);
@@ -117,9 +117,9 @@ package body SimProc is
   shift <= '1';
   for i in 0 to bits-1 loop
    din <= tmp(bits - 1);
-   wait until sysClk = '1';
+   wait until clk = '1';
    tmp := shift_left(tmp, 1);
-   wait until sysClk = '0';
+   wait until clk = '0';
   end loop;
   shift <= '0';
  end procedure loadShift;
@@ -135,9 +135,9 @@ package body SimProc is
   shift <= '1';
   for i in 0 to bits-1 loop
    din <= tmp(bits - 1);
-   wait until sysClk = '1';
+   wait until clk = '1';
    tmp := shift_left(tmp, 1);
-   wait until sysClk = '0';
+   wait until clk = '0';
   end loop;
   shift <= '0';
   load <= '1';

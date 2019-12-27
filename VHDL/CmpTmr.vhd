@@ -32,24 +32,23 @@ use IEEE.NUMERIC_STD.ALL;
 use work.RegDef.all;
 
 entity CmpTmr is
- generic(opBits : positive := 8;
+ generic(opBase : unsigned := x"00";
+         opBits : positive := 8;
          cycleLenBits : positive := 16;
          encClkBits : positive := 24;
          cycleClkbits : positive := 32);
  port(
   clk : in std_logic;                   --system clock
-  initialReset : in std_logic;          --initial reset
   din : in std_logic;                   --spi data in
   dshift : in std_logic;                --spi shift signal
   op: in unsigned (opBits-1 downto 0);  --current operation
   copy: in std_logic;                   --copy for output
-  dout: out std_logic;                  --data out
   init : in std_logic;                  --init signal
   ena : in std_logic;                   --enable input
   encClk : in std_logic;                --encoder clock
-  encCycleDone: out std_logic;          --encoder cycle done
+  dout: out std_logic := '0';           --data out
+  encCycleDone: out std_logic := '0';   --encoder cycle done
   cycleClocks: inout unsigned (cycleClkBits-1 downto 0)
-   := (cycleClkBits-1 downto 0 => '0') --cycle counter
   );
 end CmpTmr;
 
@@ -59,7 +58,6 @@ architecture Behavioral of CmpTmr is
   generic(n : positive);
   port(
    clk : in std_logic;
-   init : in std_logic;
    shift : in std_logic;
    din : in std_logic;
    data : inout unsigned (n-1 downto 0));
@@ -69,7 +67,6 @@ architecture Behavioral of CmpTmr is
   generic(n : positive);
   port(
    clk : in std_logic;
-   clr : in std_logic;
    ena : in std_logic;
    load : in std_logic;
    preset : in unsigned (n-1 downto 0);
@@ -86,16 +83,14 @@ architecture Behavioral of CmpTmr is
    counter : inout  unsigned (n-1 downto 0));
  end component;
 
- component UpCounterLoad is
+ component BufN is
   generic(n : positive);
-  port(
+  port (
    clk : in std_logic;
-   clr : in std_logic;
-   load : in std_logic;
-   inc : in std_logic;
-   preset : in  unsigned (n-1 downto 0);
-   counter : inout unsigned (n-1 downto 0));
- end component;
+   ena : in std_logic;
+   bufIn  : in unsigned (n-1 downto 0);
+   bufOut : out unsigned (n-1 downto 0));
+ end Component;
 
  component AccumPlusClr is
   generic(n : positive);
@@ -129,15 +124,18 @@ architecture Behavioral of CmpTmr is
   end component;
 
  component ShiftOut is
-  generic(n : positive);
-  port(
+  generic(opVal : unsigned;
+          opBits : positive;
+          n : positive);
+  port (
    clk : in std_logic;
+   dshift : in std_logic;
+   op : in unsigned (opBits-1 downto 0);
    load : in std_logic;
-   shift : in std_logic;
-   data : in unsigned (n-1 downto 0);
+   data : in unsigned(n-1 downto 0);
    dout : out std_logic
    );
- end component;
+ end Component;
 
  -- enable state machine
 
@@ -146,7 +144,7 @@ architecture Behavioral of CmpTmr is
 
  -- control signals from enable state machine
 
- signal clkCtrEna : std_logic;          --clock counter enable
+ signal clkCtrEna : std_logic := '0';   --clock counter enable
 
  -- cmp statue machine
 
@@ -190,6 +188,7 @@ architecture Behavioral of CmpTmr is
   
  -- multiplier
 
+ signal multRst : std_logic := '1';
  signal encCntCLks :
   std_logic_vector((cycleLenBits+encClkBits)-1 downto 0); --mult output
 
@@ -202,20 +201,19 @@ begin
 
  dout_mux: process(op, doutCycClks)
  begin
-  if (op = F_Rd_Cmp_Cyc_Clks) then
+  if (op = opBase + F_Rd_Cmp_Cyc_Clks) then
    dout <= doutCycClks;
   else
    dout <= '0';
   end if;
  end process dout_mux;
 
- cycleLenShift <= '1' when ((op = F_Ld_Enc_Cycle) and (dshift = '1')) else '0';
+ cycleLenShift <= '1' when ((op = opBase + F_Ld_Enc_Cycle) and (dshift = '1')) else '0';
  
  cycleLenReg: Shift                     --register for cycle length
   generic map(cycleLenBits)
   port map(
    clk => clk,
-   init => initialReset,
    shift => cycleLenShift,
    din => din,
    data => encCycle);
@@ -226,7 +224,6 @@ begin
   generic map(cycleLenBits)
   port map(
    clk => clk,
-   clr => init,
    ena => cycCalcUpd,
    load => loadCycCtr,
    preset => encCycle,
@@ -243,15 +240,13 @@ begin
    ena => clkCtrEna,
    counter => clockCounter);
 
- encClks: UpCounterLoad                 --register for clock counts
-  generic map(encClkBits)
-  port map(
-   clk => clk,
-   clr => initClear,
-   load => encPulseUpd,
-   inc => '0',
-   preset => clockCounter,
-   counter => encoderClocks);
+ encClks: BufN
+  generic map(n => encClkBits)
+  port map (
+  clk => clk,
+  ena => encPulseUpd,
+  bufIn  => clockCounter,
+  bufOut => encoderClocks);
 
  encClksExt <= (cycleClkBits-1 downto encClkBits => '0') & encoderClocks;
  clrClockTotal <= initClear or cycEndUpd;
@@ -267,7 +262,7 @@ begin
 
  clockMult: multiplier                  --multiply encoder count encoder clocks
   port map(
-   aclr => initialReset,
+   aclr => multRst,
    clken => cycCalcUpd,
    clock => clk,
    dataa => std_logic_vector(encCount),
@@ -284,17 +279,18 @@ begin
    b => unsigned(encCntClks(cycleClkBits-1 downto 0)),
    sum => cycleClocks);
 
- cycleClocksShift <= '1' when (op = F_Rd_Cmp_Cyc_Clks) and (dshift = '1')
-                     else '0';
-
  cycleClocksOut: ShiftOut
-  generic map(cycleClkBits)
-  port map(
+  generic map(opVal => opBase + F_Rd_Cmp_Cyc_Clks,
+              opBits => opBits,
+              n => cycleClkBits)
+  port map (
    clk => clk,
+   dshift => dshift,
+   op => op,
    load => copy,
-   shift => cycleClocksShift,
    data => cycleClocks,
-   dout => doutCycClks);
+   dout => doutCycClks
+   );
 
  ena_process: process(clk)
  begin
@@ -337,6 +333,7 @@ begin
  begin
   if (rising_edge(clk)) then            --if clock active
    if (init = '1') then                 --initialize variables
+    multRst <= '0';
     encPulseUpd <= '0';
     cycCalcUpd <= '0';
     cycChkUpd <= '0';

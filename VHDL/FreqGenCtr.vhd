@@ -51,7 +51,6 @@ architecture Behavioral of FreqGenCtr is
   generic(n : positive);
   port (
    clk : in std_logic;
-   init : in std_logic;
    shift : in std_logic;
    din : in std_logic;
    data : inout unsigned(n-1 downto 0));
@@ -84,7 +83,6 @@ begin
   generic map(freqBits)
   port map (
    clk => clk,
-   init => '0',
    shift => freqShift,
    din => din,
    data => freqVal);
@@ -96,7 +94,6 @@ begin
   generic map(countBits)
   port map (
    clk => clk,
-   init => '0',
    shift => countShift,
    din => din,
    data => countVal);
@@ -126,6 +123,7 @@ begin
       end if;
 
      when updCount =>                    --update count
+      freqCounter <= freqCounter - 1;    --count down
       pulseOut <= '0';                   --clear output pulse
       if (outputCounter = (countBits-1 downto 0 => '0')) then --if count zero
        state <= run;                     --return to run state
@@ -135,6 +133,7 @@ begin
       end if;
 
      when chkCount =>                    --check count
+      freqCounter <= freqCounter - 1;    --count down
       if (outputCounter /= (countBits-1 downto 0 => '0')) then --if non zero
        state <= run;                     --continue in run state
       else                               --if count zero

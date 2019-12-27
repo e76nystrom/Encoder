@@ -1,6 +1,5 @@
 onerror {resume}
 quietly WaveActivateNextPane {} 0
-add wave -noupdate /encodertest/sysClk
 add wave -noupdate /encodertest/dclk
 add wave -noupdate /encodertest/din
 add wave -noupdate /encodertest/uut/spi_int/dsel
@@ -9,8 +8,6 @@ add wave -noupdate -radix unsigned /encodertest/parmVal
 add wave -noupdate /encodertest/uut/spi_int/header
 add wave -noupdate /encodertest/uut/spi_int/clkena
 add wave -noupdate -radix unsigned /encodertest/uut/spi_int/op
-add wave -noupdate /encodertest/uut/cmpCycleSel
-add wave -noupdate /encodertest/uut/intCycleSel
 add wave -noupdate -radix unsigned /encodertest/uut/cmp_tmr/encCycle
 add wave -noupdate -radix unsigned /encodertest/uut/int_tmr/intCycle
 add wave -noupdate /encodertest/uut/int_tmr/cycleLenShift
@@ -44,6 +41,7 @@ add wave -noupdate -radix unsigned /encodertest/uut/cmp_tmr/cycleClocksOut/shift
 add wave -noupdate /encodertest/uut/spi_int/state
 add wave -noupdate -radix unsigned /encodertest/uut/spi_int/op
 add wave -noupdate -radix unsigned /encodertest/readCycleClocks
+add wave -noupdate /encodertest/uut/initialReset
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {48865385 ps} 0} {{Cursor 2} {12806422 ps} 0}
 quietly wave cursor active 1
@@ -61,4 +59,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {31802881 ps} {65927889 ps}
+WaveRestoreZoom {0 ps} {52500 ns}

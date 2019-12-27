@@ -49,7 +49,6 @@ ARCHITECTURE behavior OF CmpTmrTest IS
            cycleClkbits : positive);
   port(
    clk : in  std_logic;
-   initialReset : in std_logic;
    din : in  std_logic;
    dshift : in  std_logic;
    op: inout unsigned (opBits-1 downto 0);
@@ -71,7 +70,6 @@ ARCHITECTURE behavior OF CmpTmrTest IS
  --Inputs
  signal din : std_logic := '0';
  signal dshift : std_logic := '0';
- signal initialReset : std_logic := '1';
  signal init : std_logic := '0';
  signal ena : std_logic := '0';
  signal encClk : std_logic := '0';
@@ -98,8 +96,7 @@ begin
                encClkBits => encClkBits,
                cycleClkbits => cycleClkBits)
   port map (
-   clk => sysClk,
-   initialReset => initialReset,
+   clk => clk,
    din => din,
    dshift => dshift,
    op => op,
@@ -115,10 +112,10 @@ begin
  -- Clock process definitions
  clk_process :process
  begin
-  sysClk <= '0';
-  wait for sysClk_period/2;
-  sysClk <= '1';
-  wait for sysClk_period/2;
+  clk <= '0';
+  wait for clk_period/2;
+  clk <= '1';
+  wait for clk_period/2;
  end process;
 
  -- Stimulus process
@@ -134,13 +131,12 @@ begin
 
   wait for 100 ns;	
 
-  wait for sysClk_period*10;
+  wait for clk_period*10;
 
   -- insert stimulus here
 
   delay(5);
 
-  initialReset <= '0';
   init <= '0';
 
   op <= F_Ld_Enc_Cycle;
@@ -158,9 +154,9 @@ begin
    -- end if;
 
    encClk <= '1'; 
-   wait until sysClk = '1';                --10
+   wait until clk = '1';                --10
    encClk <= '0';
-   wait until sysClk = '0';
+   wait until clk = '0';
    -- if (k = 5) then
    --  k <= x"00";
    -- else

@@ -31,3 +31,5 @@ Proj/Encoder.out.sdc
 Sim/msim_transcript
 Sim/transcript
 Sim/wlftnb77ti
+*.qws
+Save/*

@@ -36,9 +36,9 @@ entity SPI is
   dclk : in std_logic;                   --spi clk
   dsel : in std_logic;                   --spi select
   din : in std_logic;                    --spi data in
+  shift : out std_logic := '0';         --shift data
   op : out unsigned(opBits-1 downto 0) := (opBits-1 downto 0 => '0');  --op code
   copy : out std_logic := '0';          --copy data to be shifted out
-  shift : out std_logic := '0';         --shift data
   load : out std_logic := '0';          --load data shifted in
   header : inout std_logic := '0'       --receiving header
   --info : out std_logic_vector(2 downto 0) --state info
@@ -47,7 +47,7 @@ end SPI;
 
 architecture Behavioral of SPI is
 
- component ClockEnable1 is
+ component ClockEnableN is
  generic (n : positive);
   Port (
    clk : in  std_logic;
@@ -88,7 +88,7 @@ begin
 
  --info <= convert(state);
 
- clk_ena: ClockEnable1
+ clk_ena: ClockEnableN
   generic map(n => 4)
   port map (
    clk => clk,

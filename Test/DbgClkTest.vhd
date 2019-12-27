@@ -93,7 +93,7 @@ BEGIN
                freq_Bits => freq_bits,
                count_bits => count_bits)
   port map (
-  clk => sysClk,
+  clk => clk,
   a => a,
   b => b,
   din => din,
@@ -110,10 +110,10 @@ BEGIN
 
  clk_process : process
  begin
-  sysClk <= '0';
-  wait for sysClk_period/2;
-  sysClk <= '1';
-  wait for sysClk_period/2;
+  clk <= '0';
+  wait for clk_period/2;
+  clk <= '1';
+  wait for clk_period/2;
  end process;
 
  -- Stimulus process
@@ -122,8 +122,8 @@ BEGIN
  variable freq_val : natural;
  variable count_val : natural;
  variable count : integer;
- variable dbgCtl : unsigned(dctl_size-1 downto 0) :=
-  (dctl_size-1 downto 0 => '0');
+ variable dbgCtl : unsigned(dCtlSize-1 downto 0) :=
+  (dCtlSize-1 downto 0 => '0');
  variable ctl : integer;
  variable tmp : unsigned(32-1 downto 0) := (32-1 downto 0 => '0');
  
@@ -131,13 +131,13 @@ BEGIN
   -- hold reset state for 100 ns.
   wait for 100 ns;	
 
-  wait for sysClk_period*10;
+  wait for clk_period*10;
 
   -- insert stimulus here 
 
   op <= F_Ld_Dbg_Ctl;
-  dbgCtl := (dctl_size-1 downto 0 => '0');
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  dbgCtl := (dCtlSize-1 downto 0 => '0');
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
 
   op <= F_Noop;
 
@@ -179,7 +179,7 @@ BEGIN
   op <= F_Ld_Dbg_Ctl;
   dbgCtl(c_DbgEna) := '1';
   dbgCtl(c_DbgSel) := '1';
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
 
   delay(100);                           --enable and selected
 
@@ -187,7 +187,7 @@ BEGIN
   dbgCtl(c_DbgEna) := '1';
   dbgCtl(c_DbgSel) := '1';
   dbgCtl(c_DbgCount) := '1';
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
 
   delay(100);                           --disabled selected
 
@@ -195,13 +195,13 @@ BEGIN
   dbgCtl(c_DbgEna) := '1';
   dbgCtl(c_DbgDir) := '1';
   dbgCtl(c_DbgCount) := '0';
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
 
   delay(50);                            --enabled reverse
 
   op <= F_Ld_Dbg_Ctl;
 
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
 
   delay(50);                            --enabled forward
 
@@ -211,13 +211,13 @@ BEGIN
 
   op <= F_Ld_Dbg_Ctl;
   dbgCtl(c_DbgCount) := '1';
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
 
   delay(150);                           --enabled forward and counting
 
   op <= F_Ld_Dbg_Ctl;
-  dbgCtl := (dctl_size-1 downto 0 => '0');
-  loadCtl(to_integer(dbgCtl), dctl_size, dshift, din, load);
+  dbgCtl := (dCtlSize-1 downto 0 => '0');
+  loadCtl(to_integer(dbgCtl), dCtlSize, dshift, din, load);
   
   wait;
  end process;

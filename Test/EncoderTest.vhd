@@ -32,8 +32,9 @@ USE ieee.std_logic_1164.ALL;
 -- arithmetic functions with Signed or Unsigned values
 USE ieee.numeric_std.ALL;
  
-use work.RegDef.all;
 use work.SimProc.all;
+use work.RegDef.all;
+use work.FpgaEncBits.all;
 
 ENTITY EncoderTest IS
 END EncoderTest;
@@ -47,11 +48,9 @@ ARCHITECTURE behavior OF EncoderTest IS
    sysClk : in std_logic;
    
    led : out std_logic_vector(7 downto 0);
-
-   dbg0 : out std_logic;
-   dbg1 : out std_logic;
-   dbg2 : out std_logic;
-   dbg3 : out std_logic;
+   dbg : out std_logic_vector(7 downto 0) := (7 downto 0 => '0');
+   anode : out std_logic_vector(3 downto 0) := (3 downto 0 => '1');
+   seg : out std_logic_vector(6 downto 0) := (6 downto 0 => '1');
 
    dclk : in std_logic;
    dout : out std_logic;
@@ -59,14 +58,12 @@ ARCHITECTURE behavior OF EncoderTest IS
    dsel : in std_logic;
 
    encClkOut  : out std_logic;
-   intClk  : out std_logic;
+   intClkOut  : out std_logic;
    start  : in std_logic;
    ready  : out std_logic;
    
    a_in : in std_logic;
-   b_in : in std_logic;
-
-   initialReset : in std_logic
+   b_in : in std_logic
    );
  end component;
 
@@ -81,16 +78,12 @@ ARCHITECTURE behavior OF EncoderTest IS
  signal a_in : std_logic := '0';
  signal b_in : std_logic := '0';
 
- signal initialReset : std_logic := '1';
-
  --Outputs
 
  signal led : std_logic_vector(7 downto 0);
-
- signal dbg0 : std_logic;
- signal dbg1 : std_logic;
- signal dbg2 : std_logic;
- signal dbg3 : std_logic;
+ signal dbg : std_logic_vector(7 downto 0);
+ signal anode : std_logic_vector(3 downto 0);
+ signal seg : std_logic_vector(6 downto 0);
 
  signal dout : std_logic;
 
@@ -104,6 +97,7 @@ ARCHITECTURE behavior OF EncoderTest IS
 
  signal encCycle : natural := 5;
  signal intCycle : natural := 4;
+ signal ctlVal : natural := 1;
 
  signal parmIdx : unsigned(opb-1 downto 0) :=  (opb-1 downto 0 => '0');
  signal parmVal : unsigned(cycleLenBits-1 downto 0) :=
@@ -118,14 +112,12 @@ begin
 
  uut: Encoder
   port map (
-   sysClk => sysClk,
+   sysClk => clk,
 
    led => led,
-
-   dbg0 => dbg0,
-   dbg1 => dbg1,
-   dbg2 => dbg2,
-   dbg3 => dbg3,
+   dbg => dbg,
+   anode => anode,
+   seg => seg,
 
    dclk => dclk,
    dout => dout,
@@ -133,24 +125,22 @@ begin
    dsel => dsel,
 
    encClkOut => encClkOut,
-   intClk => intClk,
+   intClkOut => intClk,
    start => start,
    ready => ready,
 
    a_in => a_in,
-   b_in => b_in,
-
-   initialReset => initialReset
+   b_in => b_in
    );
 
  -- Clock process definitions
 
- sysClk_process : process
+ clk_process : process
  begin
-  sysClk <= '0';
-  wait for sysClk_period/2;
-  sysClk <= '1';
-  wait for sysClk_period/2;
+  clk <= '0';
+  wait for clk_period/2;
+  clk <= '1';
+  wait for clk_period/2;
  end process;
  
  -- Stimulus process
@@ -179,12 +169,20 @@ begin
 
   delay(8);
 
-  initialReset <= '0';
-
-  wait for sysClk_period*5;
+  wait for clk_period*5;
 
   -- insert stimulus here
 
+  ctlVal <= 1;
+
+  loadParm(F_Ld_Run_Ctl);
+  loadValue(ctlVal, rCtlSize);
+
+  ctlVal <= 0;
+  
+  loadParm(F_Ld_Run_Ctl);
+  loadValue(ctlVal, rCtlSize);
+  
   loadParm(F_Ld_Enc_Cycle);
   loadValue(encCycle, cycleLenBits);
 

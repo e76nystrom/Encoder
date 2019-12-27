@@ -7,7 +7,6 @@ add wave -noupdate /cmptmrtest/init
 add wave -noupdate /cmptmrtest/ena
 add wave -noupdate /cmptmrtest/uut/enaState
 add wave -noupdate /cmptmrtest/uut/clkCtrEna
-add wave -noupdate /cmptmrtest/uut/cycleSel
 add wave -noupdate /cmptmrtest/uut/state
 add wave -noupdate /cmptmrtest/encClk
 add wave -noupdate -divider cycleLenReg
@@ -15,7 +14,6 @@ add wave -noupdate -radix unsigned /cmptmrtest/uut/encCycle
 add wave -noupdate -divider DownCounter
 add wave -noupdate /cmptmrtest/uut/cycCalcUpd
 add wave -noupdate /cmptmrtest/uut/initClear
-add wave -noupdate /cmptmrtest/uut/cycDoneUpd
 add wave -noupdate /cmptmrtest/uut/loadCycCtr
 add wave -noupdate -radix unsigned /cmptmrtest/uut/encCount
 add wave -noupdate /cmptmrtest/uut/cycleDone
@@ -38,9 +36,12 @@ add wave -noupdate /cmptmrtest/uut/cycChkUpd
 add wave -noupdate -radix unsigned /cmptmrtest/uut/encCntCLks
 add wave -noupdate -radix unsigned /cmptmrtest/uut/clockTotal
 add wave -noupdate -radix unsigned /cmptmrtest/uut/cycleClocks
+add wave -noupdate -radix unsigned /cmptmrtest/uut/encClkCtr/counter
+add wave -noupdate -radix unsigned /cmptmrtest/uut/encClks/bufOut
+add wave -noupdate /cmptmrtest/uut/encClks/ena
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {322243 ps} 0} {{Cursor 2} {5345000 ps} 0}
-quietly wave cursor active 2
+WaveRestoreCursors {{Cursor 1} {665000 ps} 0} {{Cursor 2} {5345000 ps} 0}
+quietly wave cursor active 1
 configure wave -namecolwidth 206
 configure wave -valuecolwidth 53
 configure wave -justifyvalue left
@@ -55,4 +56,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {6300 ns}
+WaveRestoreZoom {0 ps} {10500 ns}

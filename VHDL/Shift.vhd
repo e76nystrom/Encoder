@@ -33,10 +33,9 @@ entity Shift is
  generic(n : positive);
  port(
   clk : in std_logic;
-  init : in std_logic;
   din : in std_logic;
   shift : in std_logic;
-  data : inout unsigned (n-1 downto 0) := (n-1 downto 0 => '0')
+  data : inout unsigned (n-1 downto 0) := (others => '0')
   );
 end Shift;
 
@@ -47,9 +46,7 @@ begin
 shift_reg: process (clk)
  begin
   if (rising_edge(clk)) then
-   if (init = '1') then
-    data <= (n-1 downto 0 => '0');
-   elsif (shift = '1') then
+   if (shift = '1') then
     data <= data(n-2 downto 0) & din;
    end if;
   end if;

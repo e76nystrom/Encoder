@@ -47,7 +47,6 @@ architecture Behavioral of FreqGen is
   generic(n : positive);
   port (
    clk : in std_logic;
-   init : in std_logic;
    shift : in std_logic;
    din : in std_logic;
    data : inout  unsigned (freq_bits-1 downto 0));
@@ -66,7 +65,6 @@ begin
   generic map(freq_bits)
   port map (
    clk => clk,
-   init => '0',
    shift => freq_shift,
    din => din,
    data => freq_val);

@@ -82,7 +82,7 @@ begin
           freqBits => freqBits,
           countBits => countBits)
   port map (
-  clk => sysClk,
+  clk => clk,
   din => din,
   dshift => dshift,
   load => load,
@@ -93,10 +93,10 @@ begin
  -- Clock process definitions
  clk_process :process
  begin
-  sysClk <= '0';
-  wait for sysClk_period/2;
-  sysClk <= '1';
-  wait for sysClk_period/2;
+  clk <= '0';
+  wait for clk_period/2;
+  clk <= '1';
+  wait for clk_period/2;
  end process;
  
 
@@ -110,7 +110,7 @@ begin
   -- hold reset state for 100 ns.
   wait for 100 ns;	
 
-  wait for sysClk_period*10;
+  wait for clk_period*10;
 
   -- insert stimulus here
 

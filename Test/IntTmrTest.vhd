@@ -49,7 +49,6 @@ ARCHITECTURE behavior OF IntTmrTest IS
            cycleClkbits : positive);
   port(
    clk : in std_logic;
-   initialReset : in std_logic;
    din : in std_logic;
    dshift : in std_logic;
    op: inout unsigned (opBits-1 downto 0);
@@ -73,13 +72,12 @@ ARCHITECTURE behavior OF IntTmrTest IS
  constant counterBits : positive := 8;
 
  --Inputs
- -- signal sysClk : std_logic := '0';
+ -- signal clk : std_logic := '0';
  signal din : std_logic := '0';
  signal dshift : std_logic := '0';
  signal dclk : std_logic := '0';
  signal dsel : std_logic := '0';
  signal init : std_logic := '0';
- signal initialReset : std_logic := '1';
  signal op : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
  signal copy : std_logic := '0';
  signal encCycleDone : std_logic := '0';
@@ -91,9 +89,6 @@ ARCHITECTURE behavior OF IntTmrTest IS
  
  signal tmp : signed(cycleLenBits-1 downto 0);
 
- signal clks : unsigned(counterBits-1 downto 0);
- signal cycles : unsigned(counterBits-1 downto 0);
-
 begin
  
  -- Instantiate the Unit Under Test (UUT)
@@ -103,8 +98,7 @@ begin
               encClkBits => encClkBits,
               cycleClkbits => cycleClkBits)
   port map (
-   clk => sysClk,
-   initialReset => initialReset,
+   clk => clk,
    din => din,
    dshift => dshift,
    op => op,
@@ -119,10 +113,10 @@ begin
  -- Clock process definitions
  clk_process :process
  begin
-  sysClk <= '0';
-  wait for sysClk_period/2;
-  sysClk <= '1';
-  wait for sysClk_period/2;
+  clk <= '0';
+  wait for clk_period/2;
+  clk <= '1';
+  wait for clk_period/2;
  end process;
  
   -- Stimulus process
@@ -137,19 +131,21 @@ begin
   loadValue(value, bits, dsel, din, dclk);
  end loadValue;
 
+ variable clks : integer;
+ variable cycles : integer;
+
  begin		
   -- hold reset state for 10 ns.
   init <= '1';
   wait for 20 ns;	
 
-  wait for sysClk_period*10;
+  wait for clk_period*10;
   
   -- insert stimulus here 
 
   delay(5);
 
   init <= '0';
-  initialReset <= '0';
 
   op <= F_Ld_Int_Cycle;
   loadShift(intCycle, cycleLenBits, dshift, din);
@@ -165,16 +161,16 @@ begin
   delay(5);
 
   cycleClocks <= to_unsigned(cycleLen-1, cycleClkBits);
-  cycles <= to_unsigned(0, counterBits);
+  cycles := 0;
   for i in 0 to cycleCount-1 loop
-   clks <= to_unsigned(0, counterBits);
-   encCycleDone <= '0';
+   clks := 0;
+   encCycleDone <= '1';
    for j in 0 to cycleLen-1 loop
     delay(1);
-    clks <= clks + to_unsigned(1, counterBits);
+    clks := clks + 1;
+    encCycleDone <= '0';
    end loop;
-   encCycleDone <= '1';
-   cycles <= cycles + to_unsigned(1, counterBits);
+   cycles := cycles + 1;
   end loop;
 
   wait;

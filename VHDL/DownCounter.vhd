@@ -36,7 +36,7 @@ entity DownCounter is
         ena : in std_logic;
         load : in std_logic;
         preset : in unsigned (n-1 downto 0);
-        counter : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '0');
+        counter : inout  unsigned (n-1 downto 0) := (n-1 downto 0 => '1');
         zero : out std_logic := '0');
 end DownCounter;
 

@@ -4,7 +4,7 @@
 -- 
 -- Create Date:    06:41:15 03/05/2009 
 -- Design Name: 
--- Module Name:    ClockEnable - Behavioral 
+-- Module Name:    ClockEnableN - Behavioral 
 -- Project Name: 
 -- Target Devices: 
 -- Tool versions: 
@@ -26,14 +26,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity ClockEnable1 is
+entity ClockEnableN is
  generic (n : positive := 1);
  Port ( clk : in  std_logic;
         ena : in  std_logic;
         clkena : out std_logic);
-end ClockEnable1;
+end ClockEnableN;
 
-architecture Behavioral of ClockEnable1 is
+architecture Behavioral of ClockEnableN is
 
  constant delayLen : positive := n*2;
  signal clkdly : std_logic_vector(delayLen-1 downto 0);

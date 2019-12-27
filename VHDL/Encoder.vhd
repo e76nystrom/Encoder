@@ -45,13 +45,14 @@ entity Encoder is
   din  : in std_logic;
   dsel : in std_logic;
 
+  a_in : in std_logic;
+  b_in : in std_logic;
+
   encClkOut : out std_logic;
   intClkOut : out std_logic;
   start  : in std_logic;
-  ready  : out std_logic := '0';
+  ready  : out std_logic := '0'
 
-  a_in : in std_logic;
-  b_in : in std_logic
   -- sync_in : in std_logic;
   
   -- EPCS_ASDO : out std_logic;
@@ -86,10 +87,25 @@ architecture Behavioral of Encoder is
   generic(n : positive);
   port(
    clk : in std_logic;
-   init : in std_logic;
    shift : in std_logic;
    din : in std_logic;
    data : inout unsigned (n-1 downto 0)
+   );
+ end component;
+
+ component FreqGenCtr
+  generic(opBits : positive := 8;
+          freqOp : unsigned;
+          countOp : unsigned;
+          freqBits : positive;
+          countBits: positive);
+  port(
+   clk : in std_logic;
+   din : in std_logic;
+   dshift : in std_logic;
+   load : in std_logic;
+   op : in unsigned(opBits-1 downto 0);
+   pulseOut : out std_logic
    );
  end component;
 
@@ -120,25 +136,17 @@ architecture Behavioral of Encoder is
    );
  end component;
 
- -- component CtlReg is
- --  generic(opVal : unsigned;
- --          opb : positive := 8;
- --          n : positive);
- --  port(
- --   clk : in std_logic;
- --   din : in std_logic;
- --   op : in unsigned(opb-1 downto 0);
- --   shift : in std_logic;
- --   load : in std_logic;
- --   data : inout  unsigned (n-1 downto 0));
- -- end component;
-
- component ClockEnable is
-  port(
-   clk : in  std_logic;
-   ena : in  std_logic;
-   clkena : out std_logic
-   );
+ component CtlReg is
+ generic(opVal : unsigned;
+         opb : positive;
+         n : positive);
+  port (
+   clk : in std_logic;
+   din : in std_logic;
+   op : unsigned(opb-1 downto 0);
+   shift : in std_logic;
+   load : in std_logic;
+   data : inout  unsigned (n-1 downto 0));
  end component;
 
  component CmpTmr
@@ -148,7 +156,6 @@ architecture Behavioral of Encoder is
            cycleClkbits : positive := 32);
   port(
    clk : in std_logic;                   --system clock
-   initialReset : in std_logic;          --initial reset
    din : in std_logic;                   --spi data in
    dshift : in std_logic;                --spi shift signal
    op: in unsigned (opBits-1 downto 0);  --current operation
@@ -169,7 +176,6 @@ architecture Behavioral of Encoder is
            cycleClkbits : positive := 32);
   port(
    clk : in std_logic;                  --system clock
-   initialReset : in std_logic;         --initial reset
    din : in std_logic;                  --spi data in
    dshift : in std_logic;               --spi shift in
    op: in unsigned (opBits-1 downto 0); --current operation
@@ -196,26 +202,25 @@ architecture Behavioral of Encoder is
 
  -- system clock
 
- signal clk1 : std_logic;
+ signal clk : std_logic;
  signal locked : std_logic;
+
+ --debug frequency generator
+
+ constant freqBits : integer := 12;
+ constant countBits : integer := 20;
+ signal testClock : std_logic;
 
  -- quadrature encoder outputs
 
  signal encClk : std_logic;
+ signal ch : std_logic;
 
  -- clock divider
 
  constant div_range : integer := 26;
  signal div : unsigned (div_range downto 0);
  alias digSel: unsigned(1 downto 0) is div(19 downto 18);
-
- -- initialzation and start control variables
-
- constant delayBits : integer := 4;
- signal initialReset : std_logic := '0';
- signal ctlInit : std_logic := '0';
- signal ctlEna  : std_logic := '0';
- signal ctlDelay : unsigned (delayBits-1 downto 0) := (delayBits-1 downto 0 => '1');
 
  -- spi interface
 
@@ -226,6 +231,25 @@ architecture Behavioral of Encoder is
  signal op : unsigned (opBits-1 downto 0); --operation code
  signal outReg : unsigned (out_bits-1 downto 0); --output register
  signal header : std_logic;
+
+ -- run control register
+
+ constant rCtlSize : integer := 3;
+ signal rCtlReg : unsigned(rCtlSize-1 downto 0);
+ alias ctlReset   : std_logic is rCtlreg(0); -- x01 reset
+ constant c_ctlReset   : integer :=  0; -- x01 reset
+ alias ctlTestClock : std_logic is rCtlreg(1); -- x02 testclock
+ constant c_ctlTestClock : integer :=  1; -- x02 testclock
+ alias ctlSpare   : std_logic is rCtlreg(2); -- x04 spare
+ constant c_ctlSpare   : integer :=  2; -- x04 spare
+
+ -- initialzation and start control variables
+
+ constant delayBits : integer := 4;
+ signal ctlInit : std_logic := '0';
+ signal ctlEna  : std_logic := '0';
+ signal ctlDelay : unsigned (delayBits-1 downto 0) :=
+  (delayBits-1 downto 0 => '1');
 
  -- cmpTmr
 
@@ -242,8 +266,8 @@ architecture Behavioral of Encoder is
  signal intClk : std_logic;
  signal doutIntTmr : std_logic;
 
- type ctlFsm is (initial, reset, idle, setReady, init, enable);
- signal ctlState : ctlFsm := initial;
+ type ctlFsm is (idle, setReady, init, enable);
+ signal ctlState : ctlFsm := idle;
 
  -- display signals
 
@@ -274,7 +298,7 @@ begin
  testOut1 : PulseGen
   generic map (step_width => 25)
   port map (
-   clk => clk1,
+   clk => clk,
    step_in => encCycleDone,
    step_out => test1
    );
@@ -284,8 +308,8 @@ begin
  testOut2 : PulseGen
   generic map (step_width => 25)
   port map (
-   clk => clk1,
-   step_in => load,
+   clk => clk,
+   step_in => intClk,
    step_out => test2
    );
 
@@ -305,59 +329,72 @@ begin
   port map (
    areset  => '0',
    inclk0  => sysClk,
-   c0      => clk1,
+   c0      => clk,
    locked  => locked
    );
+
+ freq_gen_ctr: FreqGenCtr
+  generic map(opBits => opb,
+          freqOp => F_Ld_Dbg_Freq,
+          countOp => F_Ld_Dbg_Count,
+          freqBits => freqBits,
+          countBits => countBits)
+  port map (
+  clk => clk,
+  din => din,
+  dshift => dshift,
+  load => load,
+  op => op,
+  pulseOut => testClock
+  );
 
  -- quadrature encoder
  
  quad_encoder: QuadEncoder
   port map (
-   clk => clk1,
+   clk => clk,
    a => a_in,
    b => b_in,
-   ch => encClk,
+   ch => ch,
    dir => open,
    dir_ch => open,
    err => open
    );
 
+ enc_clk_sel: process(ctlTestClock, ch, testClock)
+ begin
+  case (ctlTestClock) is
+   when '0' => encClk <= ch;
+   when '1' => encClk <= testClock;
+   when others => encClk <= '0';
+  end case;
+ end process enc_clk_sel;
+
  -- encoder output
 
  enc_clk_out : PulseGen
-  generic map (step_width => 50)
+  generic map (step_width => 25)
   port map (
-   clk => clk1,
+   clk => clk,
    step_in => encClk,
    step_out => encClkOut
    );
 
  -- clock divider
 
- clk_div: process(clk1)
+ clk_div: process(clk)
  begin
-  if (rising_edge(clk1)) then
+  if (rising_edge(clk)) then
    div <= div + 1;
   end if;
  end process;
-
- -- -- test clock
-
- -- testEncClk : ClockEnable
- --  port map (
- --   clk => clk1,
- --   ena => div(20),
- --   clkena => encClk);
-
- -- display register
 
  dspShift <= '1' when ((op = F_Ld_Enc_Cycle) and (dshift = '1')) else '0';
 
  display_reg: Shift
   generic map(dspBits)
   port map(
-   clk => clk1,
-   init => '0',
+   clk => clk,
    shift => dspShift,
    din => din,
    data => dspData
@@ -367,7 +404,7 @@ begin
 
  led_display : Display
   port map (
-   clk => clk1,
+   clk => clk,
    dspReg => dspData,
    digSel => digSel,
    anode => anode,
@@ -379,7 +416,7 @@ begin
  spi_int : SPI
   generic map (opBits)
   port map (
-   clk => clk1,
+   clk => clk,
    dclk => dclk,
    dsel => dsel,
    din => din,
@@ -395,9 +432,9 @@ begin
 
  dout <= doutCmpTmr or doutIntTmr;
 
- outReg_proc : process(clk1)
+ outReg_proc : process(clk)
  begin
-  if (rising_edge(clk1)) then
+  if (rising_edge(clk)) then
    if (copy = '1') then
     case op is
      when x"00" => 
@@ -415,36 +452,22 @@ begin
   end if;
  end process;
 
- -- rCtl : CtlReg
- --  generic map (opVal => XLDCTL,
- --               opb => opb,
- --               n => rCtlSize)
- --  port map (
- --   clk => clk1,
- --   din => din,
- --   op => op,
- --   shift => dshift,
- --   load => load,
- --   data => rCtlReg);
+ rCtl_reg : CtlReg
+  generic map (opVal => F_Ld_Run_Ctl,
+               opb => opBits,
+               n => rCtlSize)
+  port map (
+   clk => clk,
+   din => din,
+   op => op,
+   shift => dshift,
+   load => load,
+   data => rCtlReg);
 
- ctl_process: process(clk1)
+ ctl_process: process(clk)
  begin
-  if (rising_edge(clk1)) then            --if clock active
+  if (rising_edge(clk)) then            --if clock active
    case ctlState is
-    when initial =>
-     initialReset <= '1';
-     ready <= '0';
-     ctlDelay <= (delayBits-1 downto 0 => '1');
-     ctlState <= reset;
-
-    when reset =>
-     if (ctlDelay = 0) then
-      initialReset <= '0';
-      ctlState <= idle;
-     else
-      ctlDelay <= ctlDelay - 1;
-     end if;
-
     when idle =>
      if (start = '1') then
       ready <= '0';
@@ -480,8 +503,7 @@ begin
                encClkBits => encClkBits,
                cycleClkbits => cycleClkBits)
   port map (
-   clk => clk1,
-   initialReset => initialReset,
+   clk => clk,
    din => din,
    dshift => dshift,
    op => op,
@@ -499,8 +521,7 @@ begin
                encClkBits => encClkBits,
                cycleClkbits => cycleClkBits)
   port map (
-   clk => clk1,
-   initialReset => initialReset,
+   clk => clk,
    din => din,
    dshift => dshift,
    init => ctlInit,
@@ -517,7 +538,7 @@ begin
  int_tmr_out : PulseGen
   generic map (step_width => 50)
   port map (
-   clk => clk1,
+   clk => clk,
    step_in => intClk,
    step_out => intClkOut
    );

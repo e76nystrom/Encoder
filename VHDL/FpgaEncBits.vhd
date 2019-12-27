@@ -1,28 +1,25 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.all;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 package FpgaEncBits is
 
--- status register
+-- run control register
 
- constant stat_size : integer := 1;
- signal statReg : unsigned(stat_size-1 downto 0);
- alias doneInt    : std_logic is statreg(0); -- x01 z done interrrupt
- constant c_doneInt    : integer :=  0; -- x01 z done interrrupt
+ constant rCtlSize : integer := 3;
+ signal rCtlReg : unsigned(rCtlSize-1 downto 0);
+ alias ctlReset   : std_logic is rCtlreg(0); -- x01 reset
+ alias ctlTestClock : std_logic is rCtlreg(1); -- x02 testclock
+ alias ctlSpare   : std_logic is rCtlreg(2); -- x04 spare
 
 -- debug control register
 
- constant dCtl_size : integer := 4;
- signal dCtlReg : unsigned(dCtl_size-1 downto 0);
+ constant dCtlSize : integer := 4;
+ signal dCtlReg : unsigned(dCtlSize-1 downto 0);
  alias DbgEna     : std_logic is dCtlreg(0); -- x01 enable debugging
- constant c_DbgEna     : integer :=  0; -- x01 enable debugging
  alias DbgSel     : std_logic is dCtlreg(1); -- x02 select dbg encoder
- constant c_DbgSel     : integer :=  1; -- x02 select dbg encoder
  alias DbgDir     : std_logic is dCtlreg(2); -- x04 debug direction
- constant c_DbgDir     : integer :=  2; -- x04 debug direction
  alias DbgCount   : std_logic is dCtlreg(3); -- x08 gen count num dbg clks
- constant c_DbgCount   : integer :=  3; -- x08 gen count num dbg clks
 
 end FpgaEncBits;
 

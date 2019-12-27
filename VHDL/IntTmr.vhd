@@ -32,22 +32,22 @@ use IEEE.NUMERIC_STD.ALL;
 use work.RegDef.all;
 
 entity IntTmr is
- generic(opBits : positive := 8;
+ generic(opBase : unsigned := x"00";
+         opBits : positive := 8;
          cycleLenBits : positive := 16;
          encClkBits : positive := 24;
          cycleClkbits : positive := 32);
  port(
   clk : in std_logic;                   --system clock
-  initialReset : in std_logic;          --initial reset
   din : in std_logic;                   --spi data in
   dshift : in std_logic;                --spi shift in
   op: in unsigned (opBits-1 downto 0);  --current operation
   copy: in std_logic;                   --copy for output
-  dout: out std_logic := '0';           --data out
   init : in std_logic;                  --init signal
-  intClk : out std_logic := '0';        --output clock
   encCycleDone : in std_logic;          --encoder cycle done
-  cycleClocks: in unsigned (cycleClkBits-1 downto 0) --cycle counter
+  cycleClocks: in unsigned (cycleClkBits-1 downto 0); --cycle counter
+  dout: out std_logic := '0';           --data out
+  intClk : out std_logic := '0'         --output clock
   );
 end IntTmr;
 
@@ -57,7 +57,6 @@ architecture Behavioral of IntTmr is
   generic(n : positive);
   port(
    clk : in std_logic;
-   init : in std_logic;
    shift : in std_logic;
    din : in std_logic;
    data : inout unsigned (n-1 downto 0));
@@ -173,13 +172,12 @@ begin
 
  dout <= '0';
  
- cycleLenShift <= '1' when ((op = F_Ld_Int_Cycle) and (dshift = '1'))else '0';
+ cycleLenShift <= '1' when ((op = opBase + F_Ld_Int_Cycle) and (dshift = '1'))else '0';
  
  cycleLenReg: Shift                     --register for cycle length
   generic map(cycleLenBits)
   port map(
    clk => clk,
-   init => initialReset,
    shift => cycleLenShift,
    din => din,
    data => intCycle);

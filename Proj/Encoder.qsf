@@ -71,33 +71,8 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
 set_global_assignment -name TOP_LEVEL_ENTITY Encoder
 
-set_global_assignment -name VHDL_FILE ../VHDL/QuadEncoder.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/Encoder.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/CmpTmr.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/IntTmr.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/SPI.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/Shift.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/ShiftOut.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/UpCounterOne.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/UpCounterLoad.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/UpCounter.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/Subtractor.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/RegDef.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/OpLatch.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/DownCounterOne.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/DownCounter.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/DataSel2.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/CtlReg.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/CompareLE.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/ClockEna1.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/AdderTwoInp.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/Accumulator.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/AccumPlusClr.vhd
-set_global_assignment -name VHDL_FILE ../VHDL/LatchBuf.vhd
-set_global_assignment -name QIP_FILE SystemClk.qip
-set_global_assignment -name QIP_FILE Multiplier.qip
-set_global_assignment -name QIP_FILE Memory.qip
-set_global_assignment -name SDC_FILE Encoder.sdc
+set_global_assignment -name ENABLE_SIGNALTAP ON
+set_global_assignment -name USE_SIGNALTAP_FILE output_files/stp1.stp
 
 #++ pins
 
@@ -194,9 +169,9 @@ set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to ready
 set_location_assignment PIN_B3 -to start
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to start
 
-set_location_assignment PIN_B4 -to intClk
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to intClk
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to intClk
+set_location_assignment PIN_B4 -to intClkOut
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to intClkOut
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to intClkOut
 
 set_location_assignment PIN_A4 -to b_in
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to b_in
@@ -228,84 +203,85 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to a_in
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-18[13]
 #set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-18[13]
 
-set_location_assignment PIN_A7 -to dbg1
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg1
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg1
+set_location_assignment PIN_A7 -to dbg[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[1]
 
-set_location_assignment PIN_C6 -to dbg0
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg0
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg0
+set_location_assignment PIN_C6 -to dbg[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[0]
 
-set_location_assignment PIN_C8 -to dbg3
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg3
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg3
+set_location_assignment PIN_C8 -to dbg[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[3]
 
-set_location_assignment PIN_E6 -to dbg2
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg2
-set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg2
+set_location_assignment PIN_E6 -to dbg[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[2]
 
-#set_location_assignment PIN_E7 -to reserved_GPIO_0-23[18]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-23[18]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-23[18]
+set_location_assignment PIN_E7 -to dbg[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[5]
 
-#set_location_assignment PIN_D8 -to reserved_GPIO_0-24[19]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-24[19]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-24[19]
+set_location_assignment PIN_D8 -to dbg[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[4]
 
-set_location_assignment PIN_E8 -to initialReset
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
+set_location_assignment PIN_E8 -to dbg[7]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[7]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[7]
 
-#set_location_assignment PIN_F8 -to reserved_GPIO_0-26[21]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-26[21]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-26[21]
+set_location_assignment PIN_F8 -to dbg[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to dbg[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to dbg[6]
 
-#set_location_assignment PIN_F9 -to reserved_GPIO_0-27[22]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-27[22]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-27[22]
+set_location_assignment PIN_F9 -to seg[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[2]
 
 #set_location_assignment PIN_E9 -to reserved_GPIO_0-28[23]
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-28[23]
 #set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-28[23]
 
-#set_location_assignment PIN_C9 -to reserved_GPIO_0-31[24]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-31[24]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-31[24]
+set_location_assignment PIN_C9 -to seg[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[1]
 
-#set_location_assignment PIN_D9 -to reserved_GPIO_0-32[25]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-32[25]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-32[25]
+set_location_assignment PIN_D9 -to seg[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[3]
 
-#set_location_assignment PIN_E11 -to reserved_GPIO_0-33[26]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-33[26]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-33[26]
+set_location_assignment PIN_E11 -to seg[6]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[6]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[6]
 
-#set_location_assignment PIN_E10 -to reserved_GPIO_0-34[27]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-34[27]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-34[27]
+set_location_assignment PIN_E10 -to seg[4]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[4]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[4]
 
-#set_location_assignment PIN_C11 -to reserved_GPIO_0-35[28]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-35[28]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-35[28]
+set_location_assignment PIN_C11 -to seg[5]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[5]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[5]
 
-#set_location_assignment PIN_B11 -to reserved_GPIO_0-36[29]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-36[29]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-36[29]
+set_location_assignment PIN_B11 -to seg[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to seg[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to seg[0]
 
-#set_location_assignment PIN_A12 -to reserved_GPIO_0-37[30]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-37[30]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-37[30]
+set_location_assignment PIN_A12 -to anode[3]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to anode[3]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to anode[3]
 
-#set_location_assignment PIN_D11 -to reserved_GPIO_0-38[31]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-38[31]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-38[31]
+set_location_assignment PIN_D11 -to anode[0]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to anode[0]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to anode[0]
 
-#set_location_assignment PIN_D12 -to reserved_GPIO_0-39[32]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-39[32]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-39[32]
+set_location_assignment PIN_D12 -to anode[2]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to anode[2]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to anode[2]
 
-#set_location_assignment PIN_B12 -to reserved_GPIO_0-40[33]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_GPIO_0-40[33]
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_GPIO_0-40[33]
+set_location_assignment PIN_B12 -to anode[1]
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to anode[1]
+set_instance_assignment -name CURRENT_STRENGTH_NEW 8MA -to anode[1]
 
 # gpio 1
 
@@ -679,6 +655,10 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
 
 # epcs
 
+#set_location_assignment PIN_C1 -to reserved_EPCS_ASDO
+#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_EPCS_ASDO
+#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_EPCS_ASDO
+
 #set_location_assignment PIN_H2 -to reserved_EPCS_DATA0
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_EPCS_DATA0
 #set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_EPCS_DATA0
@@ -690,10 +670,6 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
 #set_location_assignment PIN_D2 -to reserved_EPCS_NCSO
 #set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_EPCS_NCSO
 #set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_EPCS_NCSO
-
-#set_location_assignment PIN_C1 -to reserved_EPCS_ASDO
-#set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to reserved_EPCS_ASDO
-#set_instance_assignment -name RESERVE_PIN AS_INPUT_TRI_STATED -to reserved_EPCS_ASDO
 
 # accelerometer and eeprom
 
@@ -733,4 +709,35 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to initialReset
 
 #-- pins
 
+set_global_assignment -name SLD_FILE output_files/stp1_auto_stripped.stp
+set_global_assignment -name VHDL_FILE ../VHDL/UpCounterOne.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/ClockEnaN.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/DataSel2.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/CompareLE.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/UpCounter.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/AccumPlusClr.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/DownCounterOne.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Subtractor.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/AdderTwoInp.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/CtlReg.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Display.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/ShiftOut.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/DownCounter.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/PulseGen.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/SPI.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/BufN.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Shift.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/FreqGenCtr.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/RegDef.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/QuadEncoder.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/Encoder.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/CmpTmr.vhd
+set_global_assignment -name VHDL_FILE ../VHDL/IntTmr.vhd
+set_global_assignment -name QIP_FILE SystemClk.qip
+set_global_assignment -name QIP_FILE Multiplier.qip
+set_global_assignment -name QIP_FILE Memory.qip
+set_global_assignment -name SDC_FILE Encoder.sdc
+set_global_assignment -name CDF_FILE output_files/Encoder.cdf
+set_global_assignment -name SIGNALTAP_FILE output_files/stp1.stp
+set_global_assignment -name VHDL_FILE ../VHDL/FreqGen.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

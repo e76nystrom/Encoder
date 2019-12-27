@@ -7,7 +7,6 @@ add wave -noupdate /inttmrtest/uut/intClk
 add wave -noupdate -radix unsigned /inttmrtest/cycleClocks
 add wave -noupdate -divider Control
 add wave -noupdate /inttmrtest/uut/init
-add wave -noupdate /inttmrtest/uut/cycleSel
 add wave -noupdate -divider intCycle
 add wave -noupdate /inttmrtest/uut/cycleLenShift
 add wave -noupdate -radix unsigned /inttmrtest/uut/intCycle
@@ -34,7 +33,12 @@ add wave -noupdate -expand -group {int_processs
 } /inttmrtest/uut/intClkUpd
 add wave -noupdate -expand -group {int_processs
 } /inttmrtest/uut/intClk
-add wave -noupdate /inttmrtest/uut/initialReset
+add wave -noupdate /inttmrtest/uut/intState
+add wave -noupdate -expand -label {Contributors: intState} -group {Contributors: sim:/inttmrtest/uut/intState} /inttmrtest/uut/clk
+add wave -noupdate -expand -label {Contributors: intState} -group {Contributors: sim:/inttmrtest/uut/intState} -color Red /inttmrtest/uut/encCycleDone
+add wave -noupdate -expand -label {Contributors: intState} -group {Contributors: sim:/inttmrtest/uut/intState} -color Gold /inttmrtest/uut/cycleDone
+add wave -noupdate -expand -label {Contributors: intState} -group {Contributors: sim:/inttmrtest/uut/intState} /inttmrtest/uut/init
+add wave -noupdate -expand -label {Contributors: intState} -group {Contributors: sim:/inttmrtest/uut/intState} /inttmrtest/uut/intClkUpd
 TreeUpdate [SetDefaultTree]
 WaveRestoreCursors {{Cursor 1} {388766 ps} 0} {{Cursor 2} {11154589 ps} 0}
 quietly wave cursor active 2
@@ -52,4 +56,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {0 ps} {47250 ns}
+WaveRestoreZoom {0 ps} {10500 ns}
