@@ -102,15 +102,26 @@ architecture Behavioral of CmpTmr is
    sum : inout unsigned (n-1 downto 0));
  end component;
 
- component multiplier is
+component Mult is
   port(
-   aclr : in std_logic;
-   clken : in std_logic;
-   clock : in std_logic;
-   dataa : in std_logic_vector(15 downto 0);
-   datab : in std_logic_vector(23 downto 0);
-   result : out std_logic_vector(39 downto 0));
- end component;
+   clr : in std_logic;
+   clkEna : in std_logic;
+   clk : in std_logic;
+   aIn : in std_logic_vector(15 downto 0);
+   bIn : in std_logic_vector(23 downto 0);
+   rslt : out std_logic_vector(39 downto 0)
+   );
+end Component;
+
+-- component multiplier is
+--   port(
+--    aclr : in std_logic;
+--    clken : in std_logic;
+--    clock : in std_logic;
+--    dataa : in std_logic_vector(15 downto 0);
+--    datab : in std_logic_vector(23 downto 0);
+--    result : out std_logic_vector(39 downto 0));
+--  end component;
 
  component AdderTwoInp is
   generic(n : positive := 32);
@@ -260,14 +271,23 @@ begin
    a => encClksExt,
    sum => clockTotal);
 
- clockMult: multiplier                  --multiply encoder count encoder clocks
+ clockMult: Mult
   port map(
-   aclr => multRst,
-   clken => cycCalcUpd,
-   clock => clk,
-   dataa => std_logic_vector(encCount),
-   datab => std_logic_vector(encoderClocks),
-   result => encCntClks);
+   clr => multRst,
+   clkEna => cycCalcUpd,
+   clk => clk,
+   aIn => std_logic_vector(encCount),
+   bIn => std_logic_vector(encoderClocks),
+   rslt => encCntClks);
+
+ -- clockMult: multiplier                  --multiply encoder count encoder clocks
+ --  port map(
+ --   aclr => multRst,
+ --   clken => cycCalcUpd,
+ --   clock => clk,
+ --   dataa => std_logic_vector(encCount),
+ --   datab => std_logic_vector(encoderClocks),
+ --   result => encCntClks);
 
  cycleClockAdder: AdderTwoInp           --cycle counter
   generic map(cycleClkBits)
