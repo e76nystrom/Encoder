@@ -36,7 +36,8 @@ entity CmpTmr is
          opBits : positive := 8;
          cycleLenBits : positive := 16;
          encClkBits : positive := 24;
-         cycleClkbits : positive := 32);
+         cycleClkbits : positive := 32;
+         outBits : positive := 32);
  port(
   clk : in std_logic;                   --system clock
   din : in std_logic;                   --spi data in
@@ -54,11 +55,14 @@ end CmpTmr;
 
 architecture Behavioral of CmpTmr is
 
- component Shift is
-  generic(n : positive);
+ component ShiftOp is
+  generic(opVal : unsigned;
+          opBits : positive;
+          n : positive);
   port(
    clk : in std_logic;
    shift : in std_logic;
+   op : in unsigned (opBits-1 downto 0);
    din : in std_logic;
    data : inout unsigned (n-1 downto 0));
  end component;
@@ -134,10 +138,11 @@ end Component;
    sum : out unsigned (n-1 downto 0));
   end component;
 
- component ShiftOut is
+ component ShiftOutN is
   generic(opVal : unsigned;
           opBits : positive;
-          n : positive);
+          n : positive;
+          outBits : positive);
   port (
    clk : in std_logic;
    dshift : in std_logic;
@@ -173,7 +178,6 @@ end Component;
 
  -- cycle length register
 
- signal cycleLenShift : std_logic;      --shift into cycle len register
  signal encCycle : unsigned (cycleLenBits-1 downto 0); --cycle length value
 
  -- cycle length counter
@@ -210,22 +214,16 @@ end Component;
 
 begin
 
- dout_mux: process(op, doutCycClks)
- begin
-  if (op = opBase + F_Rd_Cmp_Cyc_Clks) then
-   dout <= doutCycClks;
-  else
-   dout <= '0';
-  end if;
- end process dout_mux;
+ dout <= doutCycClks;
 
- cycleLenShift <= '1' when ((op = opBase + F_Ld_Enc_Cycle) and (dshift = '1')) else '0';
- 
- cycleLenReg: Shift                     --register for cycle length
-  generic map(cycleLenBits)
+ cycleLenReg: ShiftOP                   --register for cycle length
+  generic map(opVal => opBase + F_Ld_Enc_Cycle,
+              opBits => opBits,
+              n => cycleLenBits)
   port map(
    clk => clk,
-   shift => cycleLenShift,
+   shift => dshift,
+   op => op,
    din => din,
    data => encCycle);
 
@@ -299,10 +297,11 @@ begin
    b => unsigned(encCntClks(cycleClkBits-1 downto 0)),
    sum => cycleClocks);
 
- cycleClocksOut: ShiftOut
+ cycleClocksOut: ShiftOutN
   generic map(opVal => opBase + F_Rd_Cmp_Cyc_Clks,
               opBits => opBits,
-              n => cycleClkBits)
+              n => cycleClkBits,
+              outBits => outBits)
   port map (
    clk => clk,
    dshift => dshift,

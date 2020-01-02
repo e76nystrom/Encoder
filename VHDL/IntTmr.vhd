@@ -53,11 +53,14 @@ end IntTmr;
 
 architecture Behavioral of IntTmr is
 
- component Shift is
-  generic(n : positive);
+ component ShiftOp is
+  generic(opVal : unsigned;
+          opBits : positive;
+          n : positive);
   port(
    clk : in std_logic;
    shift : in std_logic;
+   op : unsigned (opBits-1 downto 0);
    din : in std_logic;
    data : inout unsigned (n-1 downto 0));
  end component;
@@ -131,7 +134,6 @@ architecture Behavioral of IntTmr is
 
  -- cycle length register
 
- signal cycleLenShift : std_logic;      --shift into cycle len register
  signal intCycle : unsigned (cycleLenBits-1 downto 0) :=
   (cycleLenBits-1 downto 0 => '0'); --cycle length value
 
@@ -172,13 +174,14 @@ begin
 
  dout <= '0';
  
- cycleLenShift <= '1' when ((op = opBase + F_Ld_Int_Cycle) and (dshift = '1'))else '0';
- 
- cycleLenReg: Shift                     --register for cycle length
-  generic map(cycleLenBits)
+ cycleLenReg: ShiftOp                     --register for cycle length
+  generic map(opVal => opBase + F_Ld_Int_Cycle,
+              opBits => opBits,
+              n => cycleLenBits)
   port map(
    clk => clk,
-   shift => cycleLenShift,
+   shift => dshift,
+   op => op,
    din => din,
    data => intCycle);
  
