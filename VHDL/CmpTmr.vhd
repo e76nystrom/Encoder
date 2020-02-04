@@ -41,9 +41,11 @@ entity CmpTmr is
  port(
   clk : in std_logic;                   --system clock
   din : in std_logic;                   --spi data in
-  dshift : in std_logic;                --spi shift signal
+  dshift : in boolean;                  --spi shift signal
   op: in unsigned (opBits-1 downto 0);  --current operation
-  copy: in std_logic;                   --copy for output
+  dshiftR : in boolean;                 --spi shift signal
+  opR: in unsigned (opBits-1 downto 0);  --current operation
+  copyR: in boolean;                    --copy for output
   init : in std_logic;                  --init signal
   ena : in std_logic;                   --enable input
   encClk : in std_logic;                --encoder clock
@@ -61,7 +63,7 @@ architecture Behavioral of CmpTmr is
           n : positive);
   port(
    clk : in std_logic;
-   shift : in std_logic;
+   shift : in boolean;
    op : in unsigned (opBits-1 downto 0);
    din : in std_logic;
    data : inout unsigned (n-1 downto 0));
@@ -145,9 +147,9 @@ end Component;
           outBits : positive);
   port (
    clk : in std_logic;
-   dshift : in std_logic;
+   dshift : in boolean;
    op : in unsigned (opBits-1 downto 0);
-   load : in std_logic;
+   copy : in boolean;
    data : in unsigned(n-1 downto 0);
    dout : out std_logic
    );
@@ -304,9 +306,9 @@ begin
               outBits => outBits)
   port map (
    clk => clk,
-   dshift => dshift,
-   op => op,
-   load => copy,
+   dshift => dshiftR,
+   op => opR,
+   copy => copyR,
    data => cycleClocks,
    dout => doutCycClks
    );

@@ -40,9 +40,8 @@ entity IntTmr is
  port(
   clk : in std_logic;                   --system clock
   din : in std_logic;                   --spi data in
-  dshift : in std_logic;                --spi shift in
+  dshift : in boolean;                --spi shift in
   op: in unsigned (opBits-1 downto 0);  --current operation
-  copy: in std_logic;                   --copy for output
   init : in std_logic;                  --init signal
   encCycleDone : in std_logic;          --encoder cycle done
   cycleClocks: in unsigned (cycleClkBits-1 downto 0); --cycle counter
@@ -59,7 +58,7 @@ architecture Behavioral of IntTmr is
           n : positive);
   port(
    clk : in std_logic;
-   shift : in std_logic;
+   shift : in boolean;
    op : unsigned (opBits-1 downto 0);
    din : in std_logic;
    data : inout unsigned (n-1 downto 0));
