@@ -21,7 +21,6 @@ Proj/simulation/*
 Save/*
 Sim/*.mpf
 Sim/*.mti
-Sim/*.vhd
 Sim/*.vstf
 Sim/*.wlf
 Sim/msim_transcript

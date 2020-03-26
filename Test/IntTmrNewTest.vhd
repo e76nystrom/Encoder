@@ -2,15 +2,15 @@
 -- Company: 
 -- Engineer:
 --
--- Create Date:   19:59:12 04/09/2018
+-- Create Date:   07:53:15 04/19/2018
 -- Design Name:   
--- Module Name:   C:/Development/Xilinx/Spartan6Encoder/CmpTmrTest.vhd
+-- Module Name:   C:/Development/Xilinx/Spartan6Encoder/IntTmrNewTest.vhd
 -- Project Name:  Spartan6Encoder
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
 -- 
--- VHDL Test Bench Created by ISE for module: CmpTmr
+-- VHDL Test Bench Created by ISE for module: IntTmrNew
 -- 
 -- Dependencies:
 -- 
@@ -28,91 +28,83 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
 use ieee.std_logic_arith.conv_std_logic_vector;
-
+ 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 USE ieee.numeric_std.ALL;
-
+ 
 use work.RegDef.all;
 use work.SimProc.all;
 
-ENTITY CmpTmrTest IS
-END CmpTmrTest;
+ENTITY IntTmrNewTest IS
+END IntTmrNewTest;
 
-ARCHITECTURE behavior OF CmpTmrTest IS 
+ARCHITECTURE behavior OF IntTmrNewTest IS 
  
  -- Component Declaration for the Unit Under Test (UUT)
  
- component CmpTmr
+ component IntTmrNew
   generic (opBits : positive;
            cycleLenBits : positive;
            encClkBits : positive;
            cycleClkbits : positive);
   port(
-   clk : in  std_logic;
-   din : in  std_logic;
-   dshift : in  boolean;
+   clk : in std_logic;
+   din : in std_logic;
+   dshift : in boolean;
    op: inout unsigned (opBits-1 downto 0);
-   dshiftR : in boolean;                 --spi shift signal
-   opR: in unsigned (opBits-1 downto 0);  --current operation
-   copyR: in boolean;                    --copy for output
    dout: out std_logic;
-   init : in  std_logic;
-   ena : in  std_logic;
-   encClk : in  std_logic;
-   encCycleDone: out std_logic;
-   cycleClocks : inout unsigned (cycleClkBits-1 downto 0)
+   init : in std_logic;
+   intClk : out std_logic;
+   encCycleDone : in std_logic;
+   cycleClocks : in unsigned(cycleClkBits-1 downto 0)
    );
  end component;
-
+ 
  constant opBits : positive := 8;
  constant cycleLenBits : positive := 16;
  constant encClkBits : positive := 24;
  constant cycleClkbits : positive := 32;
 
+ constant cycleCount : positive := 10;  --number of cycles
+ constant cycleLen : positive := 100;
+
+ constant counterBits : positive := 8;
+
  --Inputs
+ -- signal clk : std_logic := '0';
  signal din : std_logic := '0';
  signal dshift : boolean := false;
- signal op : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
  signal load : boolean := false;
- signal dshiftR : boolean := false;
- signal opR : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
- signal copyR : boolean := false;
+ signal dclk : std_logic := '0';
+ signal dsel : std_logic := '0';
  signal init : std_logic := '0';
- signal ena : std_logic := '0';
- signal encClk : std_logic := '0';
-
- --BiDirs
- signal cycleClocks : unsigned (cycleClkBits-1 downto 0);
+ signal op : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
+ signal encCycleDone : std_logic := '0';
+ signal cycleClocks : unsigned(cycleClkBits-1 downto 0) := (others => '0');
 
  --Outputs
- signal dout: std_logic;
- signal encCycleDone : std_logic;
-
+ signal intClk : std_logic;
+ signal dout : std_logic;
+ 
  signal tmp : signed(cycleLenBits-1 downto 0);
-
- signal k : unsigned (7 downto 0);
 
 begin
  
  -- Instantiate the Unit Under Test (UUT)
- uut: CmpTmr
-  generic map (opBits => opBits,
-               cycleLenBits => cycleLenBits,
-               encClkBits => encClkBits,
-               cycleClkbits => cycleClkBits)
+ uut: IntTmrNew
+  generic map(opbits => opBits,
+              cycleLenBits => cycleLenBits,
+              encClkBits => encClkBits,
+              cycleClkbits => cycleClkBits)
   port map (
    clk => clk,
    din => din,
    dshift => dshift,
    op => op,
-   dshiftR => dshiftR,
-   opR => opR,
-   copyR => copyR,
-   init => init,
-   ena => ena,
    dout => dout,
-   encClk => encClk,
+   init => init,
+   intClk => intClk,
    encCycleDone => encCycleDone,
    cycleClocks => cycleClocks
    );
@@ -125,8 +117,9 @@ begin
   clk <= '1';
   wait for clk_period/2;
  end process;
+ 
+  -- Stimulus process
 
- -- Stimulus process
  stim_proc: process
 
   procedure delay(constant n : in integer) is
@@ -155,47 +148,48 @@ begin
    load <= false;
   end procedure loadShift;
 
- variable encCycle : integer := 5;
+ variable intCycle : integer := 10;
+
+ variable clks : integer;
+ variable cycles : integer;
 
  begin		
-  -- hold reset state for 100 ns.
-
+  -- hold reset state for 10 ns.
   init <= '1';
-  ena <= '0';
-
-  wait for 100 ns;	
+  wait for 20 ns;	
 
   wait for clk_period*10;
-
-  -- insert stimulus here
+  
+  -- insert stimulus here 
 
   delay(5);
 
   init <= '0';
 
-  op <= F_Ld_Enc_Cycle;
-  loadShift(encCycle, cycleLenBits);
+  op <= F_Ld_Int_Cycle;
+  loadShift(intCycle, cycleLenBits);
 
   delay(5);
 
-  ena <= '1';
-  -- k <= x"00";
-  for j in 0 to 40-1 loop
-   -- if (k = 2) then
-   --  delay(10);
-   -- else
-     delay(9);
-   -- end if;
+  init <= '1';
 
-   encClk <= '1'; 
-   wait until clk = '1';                --10
-   encClk <= '0';
-   wait until clk = '0';
-   -- if (k = 5) then
-   --  k <= x"00";
-   -- else
-   --  k <= k + 1;
-   -- end if;
+  delay(5);
+
+  init <= '0';  
+
+  delay(5);
+
+  cycleClocks <= to_unsigned(cycleLen-1, cycleClkBits);
+  cycles := 0;
+  for i in 0 to cycleCount-1 loop
+   clks := 0;
+   encCycleDone <= '1';
+   for j in 0 to cycleLen-1 loop
+    delay(1);
+    clks := clks + 1;
+    encCycleDone <= '0';
+   end loop;
+   cycles := cycles + 1;
   end loop;
 
   wait;

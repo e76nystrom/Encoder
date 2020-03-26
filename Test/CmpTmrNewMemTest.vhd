@@ -4,13 +4,13 @@
 --
 -- Create Date:   19:59:12 04/09/2018
 -- Design Name:   
--- Module Name:   C:/Development/Xilinx/Spartan6Encoder/CmpTmrTest.vhd
+-- Module Name:   C:/Development/Xilinx/Spartan6Encoder/CmpTmrNewMemTest.vhd
 -- Project Name:  Spartan6Encoder
 -- Target Device:  
 -- Tool versions:  
 -- Description:   
 -- 
--- VHDL Test Bench Created by ISE for module: CmpTmr
+-- VHDL Test Bench Created by ISE for module: CmpTmrNewMem
 -- 
 -- Dependencies:
 -- 
@@ -36,14 +36,14 @@ USE ieee.numeric_std.ALL;
 use work.RegDef.all;
 use work.SimProc.all;
 
-ENTITY CmpTmrTest IS
-END CmpTmrTest;
+ENTITY CmpTmrNewMemTest IS
+END CmpTmrNewMemTest;
 
-ARCHITECTURE behavior OF CmpTmrTest IS 
+ARCHITECTURE behavior OF CmpTmrNewMemTest IS 
  
  -- Component Declaration for the Unit Under Test (UUT)
  
- component CmpTmr
+ component CmpTmrNewMem
   generic (opBits : positive;
            cycleLenBits : positive;
            encClkBits : positive;
@@ -66,7 +66,7 @@ ARCHITECTURE behavior OF CmpTmrTest IS
  end component;
 
  constant opBits : positive := 8;
- constant cycleLenBits : positive := 16;
+ constant cycleLenBits : positive := 11;
  constant encClkBits : positive := 24;
  constant cycleClkbits : positive := 32;
 
@@ -96,7 +96,7 @@ ARCHITECTURE behavior OF CmpTmrTest IS
 begin
  
  -- Instantiate the Unit Under Test (UUT)
- uut: CmpTmr
+ uut: CmpTmrNewMem
   generic map (opBits => opBits,
                cycleLenBits => cycleLenBits,
                encClkBits => encClkBits,

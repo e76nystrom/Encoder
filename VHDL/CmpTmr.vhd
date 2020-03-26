@@ -229,7 +229,7 @@ begin
    din => din,
    data => encCycle);
 
- loadCycCtr <= initLoad;
+ loadCycCtr <= initLoad or cycEndUpd;
 
  encCounter: DownCounter                --counter to count down cycle length
   generic map(cycleLenBits)

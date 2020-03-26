@@ -27,6 +27,7 @@
 --------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
+use ieee.std_logic_arith.conv_std_logic_vector;
  
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -50,9 +51,8 @@ ARCHITECTURE behavior OF IntTmrTest IS
   port(
    clk : in std_logic;
    din : in std_logic;
-   dshift : in std_logic;
+   dshift : in boolean;
    op: inout unsigned (opBits-1 downto 0);
-   copy: in std_logic;
    dout: out std_logic;
    init : in std_logic;
    intClk : out std_logic;
@@ -62,24 +62,24 @@ ARCHITECTURE behavior OF IntTmrTest IS
  end component;
  
  constant opBits : positive := 8;
- constant cycleLenBits : natural := 16;
+ constant cycleLenBits : positive := 16;
  constant encClkBits : positive := 24;
  constant cycleClkbits : positive := 32;
 
- constant cycleCount : positive := 10;
- constant cycleLen : natural := 105;
+ constant cycleCount : positive := 10;  --number of cycles
+ constant cycleLen : positive := 100;
 
  constant counterBits : positive := 8;
 
  --Inputs
  -- signal clk : std_logic := '0';
  signal din : std_logic := '0';
- signal dshift : std_logic := '0';
+ signal dshift : boolean := false;
+ signal load : boolean := false;
  signal dclk : std_logic := '0';
  signal dsel : std_logic := '0';
  signal init : std_logic := '0';
  signal op : unsigned (opBits-1 downto 0) := (opBits-1 downto 0 => '0');
- signal copy : std_logic := '0';
  signal encCycleDone : std_logic := '0';
  signal cycleClocks : unsigned(cycleClkBits-1 downto 0) := (others => '0');
 
@@ -102,7 +102,6 @@ begin
    din => din,
    dshift => dshift,
    op => op,
-   copy => copy,
    dout => dout,
    init => init,
    intClk => intClk,
@@ -123,13 +122,33 @@ begin
 
  stim_proc: process
 
- variable intCycle : integer := 10;
+  procedure delay(constant n : in integer) is
+  begin
+   for i in 0 to n-1 loop
+    wait until (clk = '1');
+    wait until (clk = '0');
+   end loop;
+  end procedure delay;
 
- procedure loadValue(signal value : in natural;
-                     constant bits : in natural) is
- begin
-  loadValue(value, bits, dsel, din, dclk);
- end loadValue;
+  procedure loadShift(variable value : in integer;
+                      constant bits : in natural) is
+   variable tmp: std_logic_vector(32-1 downto 0);
+  begin
+   tmp := conv_std_logic_vector(value, 32);
+   dshift <= true;
+   for i in 0 to bits-1 loop
+    din <= tmp(bits - 1);
+    wait until clk = '1';
+    tmp := tmp(31-1 downto 0) & tmp(31);
+    wait until clk = '0';
+   end loop;
+   dshift <= false;
+   load <= true;
+   delay(1);
+   load <= false;
+  end procedure loadShift;
+
+ variable intCycle : integer := 10;
 
  variable clks : integer;
  variable cycles : integer;
@@ -148,7 +167,7 @@ begin
   init <= '0';
 
   op <= F_Ld_Int_Cycle;
-  loadShift(intCycle, cycleLenBits, dshift, din);
+  loadShift(intCycle, cycleLenBits);
 
   delay(5);
 

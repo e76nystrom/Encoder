@@ -153,7 +153,7 @@ architecture Behavioral of Encoder is
   generic (opBits : positive := 8;
            cycleLenBits : positive := 16;
            encClkBits : positive := 24;
-           cycleClkbits : positive := 32l
+           cycleClkbits : positive := 32;
            outBits : positive := 32);
   port(
    clk : in std_logic;                   --system clock
@@ -200,6 +200,7 @@ architecture Behavioral of Encoder is
 
  constant opb : positive := 8;
  constant opBits : positive := 8;
+ constant outBits : positive := 32;
 
  -- system clock
 

@@ -40,12 +40,13 @@ entity IntTmr is
  port(
   clk : in std_logic;                   --system clock
   din : in std_logic;                   --spi data in
-  dshift : in boolean;                --spi shift in
+  dshift : in boolean;                  --spi shift in
   op: in unsigned (opBits-1 downto 0);  --current operation
   init : in std_logic;                  --init signal
   encCycleDone : in std_logic;          --encoder cycle done
   cycleClocks: in unsigned (cycleClkBits-1 downto 0); --cycle counter
   dout: out std_logic := '0';           --data out
+  active : out std_logic := '0';        --active
   intClk : out std_logic := '0'         --output clock
   );
 end IntTmr;
@@ -255,12 +256,14 @@ begin
     initClear <= '1';
     intRun <= '0';
     intClk <= '0';
+    active <= '0';
     intState <= idle;
    else
     initClear <= '0';
     case intState is
      when idle =>
       if (encCycleDone = '1') then
+       active <= '1';
        intRun <= '1';
        intClk <= '1';
        intState <= waitIntDone;
