@@ -1,69 +1,35 @@
---------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
 -- Create Date:    16:59:58 04/13/2018 
--- Design Name: 
--- Module Name:    IntTmrNew - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
---------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
-use work.RegDef.all;
+use work.regDef.all;
+use work.IORecord.all;
 
 entity IntTmrNew is
- generic(opBase : unsigned := x"00";
-         opBits : positive := 8;
+ generic(opBase       : unsigned := x"00";
          cycleLenBits : positive := 16;
-         encClkBits : positive := 24;
+         encClkBits   : positive := 24;
          cycleClkbits : positive := 32);
  port(
   clk : in std_logic;                   --system clock
-  din : in std_logic;                   --spi data in
-  dshift : in boolean;                  --spi shift in
-  op: in unsigned (opBits-1 downto 0);  --current operation
+
+  inp : DataInp;
+  -- din : in std_logic;                   --spi data in
+  -- dshift : in boolean;                  --spi shift in
+  -- op: in unsigned (opBits-1 downto 0);  --current operation
+
   init : in std_logic;                  --init signal
   encCycleDone : in std_logic;          --encoder cycle done
-  cycleClocks: in unsigned (cycleClkBits-1 downto 0); --cycle counter
-  dout: out std_logic := '0';           --data out
-  active : out std_logic := '0';        --active
-  intClk : out std_logic := '0'         --output clock
+  cycleClocks  : in unsigned (cycleClkBits-1 downto 0); --cycle counter
+  dout         : out std_logic := '0';  --data out
+  active       : out std_logic := '0';  --active
+  intClk       : out std_logic := '0'   --output clock
   );
 end IntTmrNew;
 
 architecture Behavioral of IntTmrNew is
-
- component ShiftOp is
-  generic(opVal : unsigned;
-          opBits : positive;
-          n : positive);
-  port(
-   clk : in std_logic;
-   shift : in boolean;
-   op : unsigned (opBits-1 downto 0);
-   din : in std_logic;
-   data : inout unsigned (n-1 downto 0));
- end component;
 
  -- internal clock state machine
 
@@ -101,15 +67,15 @@ begin
 
  dout <= '0';
  
- cycleLenReg: ShiftOp                     --register for cycle length
+ cycleLenReg : entity work.ShiftOp      --register for cycle length
   generic map(opVal => opBase + F_Ld_Int_Cycle,
-              opBits => opBits,
               n => cycleLenBits)
   port map(
-   clk => clk,
-   shift => dshift,
-   op => op,
-   din => din,
+   clk  => clk,
+   inp  => inp,
+   -- shift => dshift,
+   -- op => op,
+   -- din => din,
    data => intCycle);
 
  int_FSM_process: process(clk)

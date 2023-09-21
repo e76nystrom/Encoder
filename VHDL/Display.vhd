@@ -70,10 +70,21 @@ begin
   end if;
  end process;
 
+--      6      0 - 6 5 4 3 2 1 0   8 -
+--    -----    1 -   5 4           9 -
+--   |     |   2 - 6  5  3 2   0   A -
+-- 1 |     | 5 3 - 6 5 4       0   B -
+--   |  0  |   4 -   5 4     1 0   C -
+--    -----    5 - 6   5 4 3 2 0   D -
+--   |     |   6 - 6   4 3 2 1 0   E -
+-- 2 |     | 4 7 - 6 5 4           F -
+--   |  3  |  
+--    -----   
+
  seg_display: process(clk)
  begin
   if (rising_edge(clk)) then
-   case digInp is
+   case digInp is           -- 6543210
     when "0000" => seg <= not "1111110";
     when "0001" => seg <= not "0110000";
     when "0010" => seg <= not "1101101";

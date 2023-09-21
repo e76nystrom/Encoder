@@ -1,73 +1,41 @@
---------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
 -- Create Date:    05:23:10 04/09/2018 
--- Design Name: 
--- Module Name:    CmpTmrNew - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
---------------------------------------------------------------------------------
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
-use work.RegDef.all;
+use work.regDef.all;
+use work.IORecord.all;
 
 entity CmpTmrNew is
- generic(opBase : unsigned := x"00";
-         opBits : positive := 8;
+ generic(opBase       : unsigned := x"00";
          cycleLenBits : positive := 16;
-         encClkBits : positive := 24;
+         encClkBits   : positive := 24;
          cycleClkbits : positive := 32;
-         outBits : positive := 32);
+         outBits      : positive := 32);
  port(
-  clk : in std_logic;                   --system clock
-  din : in std_logic;                   --spi data in
-  dshift : in boolean;                  --spi shift signal
-  op: in unsigned (opBits-1 downto 0);  --current operation
-  dshiftR : in boolean;                 --spi shift signal
-  opR: in unsigned (opBits-1 downto 0);  --current operation
-  copyR: in boolean;                    --copy for output
-  init : in std_logic;                  --init signal
-  ena : in std_logic;                   --enable input
-  encClk : in std_logic;                --encoder clock
-  dout: out std_logic := '0';           --data out
-  encCycleDone: out std_logic := '0';   --encoder cycle done
-  cycleClocks: inout unsigned (cycleClkBits-1 downto 0) := (others => '0')
+  clk         : in std_logic;           --system clock
+
+  inp         : in  DataInp;
+  -- din : in std_logic;                   --spi data in
+  -- dshift : in boolean;                  --spi shift signal
+  -- op: in unsigned (opBits-1 downto 0);  --current operation
+
+  oRec        : in  DataOut;
+  -- dshiftR : in boolean;                 --spi shift signal
+  -- opR: in unsigned (opBits-1 downto 0);  --current operation
+  -- copyR: in boolean;                    --copy for output
+
+  init         : in  std_logic;         --init signal
+  ena          : in  std_logic;         --enable input
+  encClk       : in  std_logic;         --encoder clock
+  dout         : out std_logic := '0';  --data out
+  encCycleDone : out std_logic := '0';  --encoder cycle done
+  cycleClocks  : inout unsigned (cycleClkBits-1 downto 0) := (others => '0')
   );
 end CmpTmrNew;
 
 architecture Behavioral of CmpTmrNew is
-
- component ShiftOp is
-  generic(opVal : unsigned;
-          opBits : positive;
-          n : positive);
-  port(
-   clk : in std_logic;
-   shift : in boolean;
-   op : in unsigned (opBits-1 downto 0);
-   din : in std_logic;
-   data : inout unsigned (n-1 downto 0));
- end component;
 
 component Mult is
   port(
@@ -79,21 +47,6 @@ component Mult is
    rslt : out std_logic_vector(39 downto 0)
    );
 end Component;
-
- component ShiftOutN is
-  generic(opVal : unsigned;
-          opBits : positive;
-          n : positive;
-          outBits : positive);
-  port (
-   clk : in std_logic;
-   dshift : in boolean;
-   op : in unsigned (opBits-1 downto 0);
-   copy : in boolean;
-   data : in unsigned(n-1 downto 0);
-   dout : out std_logic
-   );
- end Component;
 
  -- enable state machine
 
@@ -151,36 +104,36 @@ begin
 
  dout <= doutCycClks;
 
- cycleLenReg: ShiftOP                   --register for cycle length
+ cycleLenReg : entity work.ShiftOP      --register for cycle length
   generic map(opVal => opBase + F_Ld_Enc_Cycle,
-              opBits => opBits,
               n => cycleLenBits)
   port map(
    clk => clk,
-   shift => dshift,
-   op => op,
-   din => din,
+   inp => inp,
+   -- shift => dshift,
+   -- op => op,
+   -- din => din,
    data => encCycle);
 
  clockMult: Mult
   port map(
-   clr => multRst,
+   clr    => multRst,
    clkEna => cycCalcUpd,
-   clk => clk,
-   aIn => std_logic_vector(encCountDly),
-   bIn => std_logic_vector(encoderClocks),
-   rslt => encCntClks);
+   clk    => clk,
+   aIn    => std_logic_vector(encCountDly),
+   bIn    => std_logic_vector(encoderClocks),
+   rslt   => encCntClks);
 
- cycleClocksOut: ShiftOutN
+ cycleClocksOut : entity work.ShiftOutN
   generic map(opVal => opBase + F_Rd_Cmp_Cyc_Clks,
-              opBits => opBits,
               n => cycleClkBits,
               outBits => outBits)
   port map (
-   clk => clk,
-   dshift => dshiftR,
-   op => opR,
-   copy => copyR,
+   clk  => clk,
+   oRec => oRec,
+   -- dshift => dshiftR,
+   -- op => opR,
+   -- copy => copyR,
    data => cycleClocks,
    dout => doutCycClks
    );
