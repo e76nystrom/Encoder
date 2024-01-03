@@ -13,14 +13,9 @@ entity IntTmrNew is
          encClkBits   : positive := 24;
          cycleClkbits : positive := 32);
  port(
-  clk : in std_logic;                   --system clock
-
-  inp : DataInp;
-  -- din : in std_logic;                   --spi data in
-  -- dshift : in boolean;                  --spi shift in
-  -- op: in unsigned (opBits-1 downto 0);  --current operation
-
-  init : in std_logic;                  --init signal
+  clk          : in std_logic;          --system clock
+  inp          : DataInp;
+  init         : in std_logic;          --init signal
   encCycleDone : in std_logic;          --encoder cycle done
   cycleClocks  : in unsigned (cycleClkBits-1 downto 0); --cycle counter
   dout         : out std_logic := '0';  --data out
@@ -59,9 +54,8 @@ architecture Behavioral of IntTmrNew is
 
  signal cycleClkRem : unsigned (cycleClkBits-1 downto 0) := (others => '0');
 
- -- comparator
-
- -- signal intClkUpd : std_logic := '0';
+ constant countExt  : unsigned (cycleClkBits-1 downto cycleLenBits) :=
+ (others => '0');
 
 begin
 
@@ -73,17 +67,14 @@ begin
   port map(
    clk  => clk,
    inp  => inp,
-   -- shift => dshift,
-   -- op => op,
-   -- din => din,
    data => intCycle);
 
  int_FSM_process: process(clk)
-  variable subASel : boolean;
-  variable subA : unsigned(cycleClkBits-1 downto 0);
-  variable subB : unsigned(cycleClkBits-1 downto 0);
-  variable intCountExt : unsigned (cycleClkBits-1 downto 0);
-  variable intClkUpd : std_logic;
+  variable subASel     : boolean;
+  variable subA        : unsigned(cycleClkBits-1 downto 0);
+  variable subB        : unsigned(cycleClkBits-1 downto 0);
+  variable intCountExt : unsigned(cycleClkBits-1 downto 0);
+  variable intClkUpd   : std_logic;
  begin
   if (rising_edge(clk)) then
 
@@ -115,7 +106,7 @@ begin
     end case;
    end if;                              --end initialization
    
-   intCountExt := (cycleClkBits-1 downto cycleLenBits => '0') & intCount;
+   intCountExt := countExt & intCount;
 
    if ((intRun = '1') and (intCountExt >= cycleClkRem)) then
     intClkUpd := '1';
@@ -155,7 +146,7 @@ begin
     cycleClkRem <= subA - subB;
    end if;
 
-   if (intRUn = '1') then
+   if (intRun = '1') then
     intClk <= intClkUpd;
    end if;
 
@@ -163,4 +154,3 @@ begin
  end process;
 
 end Behavioral;
-

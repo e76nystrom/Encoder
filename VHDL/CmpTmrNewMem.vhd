@@ -1,4 +1,4 @@
--- Create Date:    05:23:10 04/09/2018 
+-- Create Date:    05:23:10 04/09/2018
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -14,18 +14,9 @@ entity CmpTmrNewMem is
          cycleClkbits : positive := 32;
          outBits      : positive := 32);
  port(
-  clk          : in std_logic;          --system clock
-
-  inp          : in DataInp;
-  -- din : in std_logic;                   --spi data in
-  -- dshift : in boolean;                  --spi shift signal
-  -- op: in unsigned (opBits-1 downto 0);  --current operation
-
-  oRec         : in DataOut;
-  -- dshiftR : in boolean;                 --spi shift signal
-  -- opR: in unsigned (opBits-1 downto 0);  --current operation
-  -- copyR: in boolean;                    --copy for output
-
+  clk          : in  std_logic;         --system clock
+  inp          : in  DataInp;
+  oRec         : in  DataOut;
   init         : in  std_logic;        --init signal
   ena          : in  std_logic;        --enable input
   encClk       : in  std_logic;        --encoder clock
@@ -37,6 +28,11 @@ end CmpTmrNewMem;
 
 architecture Behavioral of CmpTmrNewMem is
 
+ type countMem is array (0 to 2048-1) of
+  std_logic_vector(encClkBits-1 downto 0);
+
+ signal countHist : countMem := (others => (others => '0'));
+
  -- enable state machine
 
  type enaFSM is (waitEna, waitEnc, run);
@@ -44,15 +40,15 @@ architecture Behavioral of CmpTmrNewMem is
 
  -- control signals from enable state machine
 
- signal clkCtrEna : boolean := false;   --clock counter enable
+ signal clkCtrEna : std_logic := '0';   --clock counter enable
 
  -- cmp statue machine
 
  type fsm is (idle, cycleSub, cycleAdd, cycleUpd);
  signal state : fsm := idle;
 
- signal done : boolean := false;
- signal subtract : boolean := false;
+ signal done : std_logic := '0';
+ signal subtract : std_logic := '0';
 
  constant delayBits : positive := 2;
  signal delay : unsigned(delayBits-1 downto 0) := (others => '0');
@@ -68,17 +64,25 @@ architecture Behavioral of CmpTmrNewMem is
 
  -- clock up counter
 
- signal clockCounter : unsigned (encClkBits-1 downto 0) := to_unsigned(1, encClkBits); --clock counter
+ signal clockCounter :
+  unsigned (encClkBits-1 downto 0) := to_unsigned(1, encClkBits); --clock ctr
 
  -- encoder clocks
 
- signal encoderClocks : unsigned (encClkBits-1 downto 0) := (others => '0'); --encoder clocks reg
+ signal encoderClocks :
+  unsigned (encClkBits-1 downto 0) := (others => '0'); --encoder clocks reg
 
  -- counters and register for clock counting
 
- signal clockTotal : unsigned (cycleClkBits-1 downto 0) := (others => '0');  --clock accumulator
+ signal clockTotal  :
+  unsigned (cycleClkBits-1 downto 0) := (others => '0');  --clock accumulator
 
- signal oldClocks : std_logic_vector(encClkBits-1 downto 0) := (others => '0');
+ constant extClocks :
+  unsigned (cycleClkBits-1 downto encClkBits) := (others=> '0');
+
+ signal oldClocks   :
+  std_logic_vector(encClkBits-1 downto 0) := (others => '0');
+
  signal wEna: std_logic := '0';
 
  -- signals for register output
@@ -94,23 +98,19 @@ begin
               n     => cycleLenBits)
   port map(
    clk  => clk,
-
    inp  => inp,
-   -- shift => dshift,
-   -- op => op,
-   -- din => din,
+   data => encCycle)
+  ;
 
-   data => encCycle);
-
- memory: entity work.CmpTmrMem2
-  port map (
-   clock     => clk,
-   data      => std_logic_vector(encoderClocks),
-   rdaddress => std_logic_vector(encCountSave),
-   wraddress => std_logic_vector(encCountSave),
-   wren      => wEna,
-   q         => oldClocks
-   );
+ -- memory: entity work.CmpTmrMem2
+ --  port map (
+ --   clock     => clk,
+ --   data      => std_logic_vector(encoderClocks),
+ --   rdaddress => std_logic_vector(encCountSave),
+ --   wraddress => std_logic_vector(encCountSave),
+ --   wren      => wEna,
+ --   q         => oldClocks
+ --   );
 
  cycleClocksOut: entity work.ShiftOutN
   generic map(opVal   => opBase + F_Rd_Cmp_Cyc_Clks,
@@ -118,15 +118,21 @@ begin
               outBits => outBits)
   port map (
    clk  => clk,
-
-   oRec  => oRec,
-   -- dshift => dshiftR,
-   -- op => opR,
-   -- copy => copyR,
-
+   oRec => oRec,
    data => cycleClocks,
    dout => doutCycClks
    );
+
+ memory: process(clk)
+  begin
+
+   if rising_edge(clk) then
+    if (wEna = '1') then
+     countHist(to_integer(encCountSave)) <= std_logic_vector(encoderClocks);
+    end if;
+    oldClocks <= std_logic_vector(countHist(to_integer(encCountSave)));
+   end if;
+  end process memory;
 
  cmp_process: process(clk)
  begin
@@ -134,7 +140,7 @@ begin
 
    if (init = '1') then                 --initialize variables
 
-    clkCtrEna <= false;                 --disable clock counter
+    clkCtrEna <= '0';                   --disable clock counter
     enaState <= waitEna;                --wait for enable
 
    else                                 --if not initializing
@@ -152,10 +158,10 @@ begin
        clockTotal <= (others => '0');
        cycleClocks <= (others => '0');
        encoderClocks <= (others => '0');
-       encCount <= encCycle;
-       clkCtrEna <= true;               --enable clock counter
-       subtract <= false;
-       done <= false;
+       encCount <= (others => '0');
+       clkCtrEna <= '1';               --enable clock counter
+       subtract <= '0';
+       done <= '0';
        state <= idle;                   --set to idle
        enaState <= run;                 --run
 
@@ -163,7 +169,7 @@ begin
 
      when  run =>                       --run
       if (ena = '0') then               --if enabled cleared
-       clkCtrEna <= false;              --disable counting
+       clkCtrEna <= '0';                --disable counting
        enaState <= waitEna;             --wait for enable
       end if;
 
@@ -171,21 +177,22 @@ begin
 
    end if;                              --end init
 
-   if (clkCtrEna) then                  --if clock counter enabled
+   if (clkCtrEna = '1') then                  --if clock counter enabled
 
     if (encClk = '1') then              --encoder event
 
-     if (encCount /= to_unsigned(0, cycleLenBits)) then --not cycle end
-      enccount <= encCount - 1;         --decrement counter
+     if (encCount < encCycle) then --not cycle end
+      enccount <= encCount + 1;         --decrement counter
      else                               --if cycle end
-      encCount <= encCycle;             --reload counter
-      done <= true;                     --set cycle end flag
+      encCount <= (others => '0');      --reload counter
+      done <= '1';                      --set cycle end flag
      end if;                            --end cycle len checks
 
      clockCounter <= to_unsigned(1, encClkBits); --restart clocks counter
-     encoderClocks <= clockCounter;     --save for multiplier
-     encCountSave <= encCount;          --save for multiplier
-     if (subtract) then
+     encoderClocks <= clockCounter;     --save before update
+     encCountSave <= encCount;          --save before udpate
+
+     if (subtract = '1') then
       delay <= to_unsigned(2, delayBits);
       state <= cycleSub;
      else
@@ -196,32 +203,29 @@ begin
     else                                --if no encoder event
      clockCounter <= clockCounter + 1;  --update clock
     end if;                             --end encoder checks
-    
+
     case state is                       --select state
      when idle =>                       --idle
       enccycledone <= '0';              --clear done flag
 
      when cycleSub =>
       if (delay = to_unsigned(0, delayBits)) then
-       clockTotal <= (clockTotal -
-                      ((cycleClkBits-1 downto encClkBits => '0') &
-                       unsigned(oldClocks)));
+       clockTotal <= clockTotal - (extCLocks & unsigned(oldClocks));
        wEna <= '1';
        state <= cycleAdd;
       else
        delay <= delay - 1;
       end if;
-      
+
      when cycleAdd =>                   --
       wEna <= '0';
-      clockTotal <= (clockTotal + ((cycleClkBits-1 downto encClkBits => '0') &
-                                   encoderClocks));  --update total clocks
+      clockTotal <= clockTotal + (extClocks & encoderClocks);  --update total
       state <= cycleUpd;
 
      when cycleUpd =>                   --calc cycle clocks
-      if (done) then                    --if not done
-       done <= false;                   --clear local flag
-       subtract <= true;                --start subtracting old data
+      if (done = '1') then              --if not done
+       done <= '0';                     --clear local flag
+       subtract <= '1';                 --start subtracting old data
        encCycleDone <= '1';             --set output flag
        cycleClocks <= clockTotal;
       end if;
